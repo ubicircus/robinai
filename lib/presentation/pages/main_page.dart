@@ -5,7 +5,12 @@ import 'package:uuid/uuid.dart';
 import '../../domain/entities/chat_message_class.dart';
 import '../provider/chat_provider.dart';
 
-class MainPage extends StatelessWidget {
+class MainPage extends StatefulWidget {
+  @override
+  State<MainPage> createState() => _MainPageState();
+}
+
+class _MainPageState extends State<MainPage> {
   @override
   Widget build(BuildContext context) {
     // Determine the screen size for responsive UI
@@ -13,6 +18,7 @@ class MainPage extends StatelessWidget {
     final bool isMobile = screenSize.width < 600;
     final List<ChatMessageClass> messages =
         Provider.of<ChatProvider>(context, listen: true).messages;
+    ScrollController _scrollController = ScrollController();
 
     return Scaffold(
       appBar: AppBar(
@@ -52,8 +58,10 @@ class MainPage extends StatelessWidget {
             child: ListView.builder(
               itemCount: messages.length,
               itemBuilder: (BuildContext context, int index) {
-                return _buildChatMessage(messages[index]);
+                return _buildChatMessage(
+                    messages[index], context, _scrollController);
               },
+              controller: _scrollController,
             ),
           ),
 
@@ -64,23 +72,40 @@ class MainPage extends StatelessWidget {
     );
   }
 
-  Widget _buildChatMessage(ChatMessageClass message) {
+  Widget _buildChatMessage(ChatMessageClass message, BuildContext ctx,
+      ScrollController _scrollController) {
+    _scrollController.animateTo(_scrollController.position.maxScrollExtent,
+        duration: const Duration(milliseconds: 500), curve: Curves.easeOut);
     return Container(
-      margin: EdgeInsets.symmetric(vertical: 10.0),
+      margin: const EdgeInsets.symmetric(vertical: 3.0),
       child: Row(
         mainAxisAlignment: message.isUserMessage
             ? MainAxisAlignment.end
             : MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
-          Container(
-            padding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(15.0),
-              color:
-                  message.isUserMessage ? Colors.teal[300] : Colors.grey[300],
+          Flexible(
+            child: Container(
+              // width: double.infinity,
+              // width: MediaQuery.of(ctx).size.width - 30,
+              padding:
+                  const EdgeInsets.symmetric(vertical: 10.0, horizontal: 10.0),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(5.0),
+                color:
+                    message.isUserMessage ? Colors.teal[300] : Colors.grey[300],
+              ),
+              child: Text(
+                message.content,
+                style: TextStyle(
+                  fontSize: 16.0,
+                  color: message.isUserMessage ? Colors.white : Colors.black,
+                ),
+                // overflow: TextOverflow.clip,
+                softWrap: true,
+              ),
             ),
-            child: Text(message.content, style: TextStyle(fontSize: 16.0)),
-          )
+          ),
         ],
       ),
     );
@@ -132,6 +157,18 @@ class MainPage extends StatelessWidget {
                 hintStyle: TextStyle(color: Colors.teal[50]),
                 border: InputBorder.none,
               ),
+              onSubmitted: (String value) {
+                final message = ChatMessageClass(
+                  id: Uuid().v1(),
+                  content: value,
+                  isUserMessage: true,
+                  timestamp: DateTime.now(),
+                );
+
+                Provider.of<ChatProvider>(context, listen: false)
+                    .addMessage(message);
+                _textController.clear();
+              },
               // You can add more properties according to the usage like controllers, focus nodes, etc.
             ),
           ),
