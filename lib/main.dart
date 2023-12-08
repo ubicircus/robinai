@@ -80,7 +80,7 @@ class MyApp extends StatelessWidget {
                     // Define other text styles like `headline1`, `headline2`,... if needed
                   ),
             ),
-            home: MainPage(),
+            home: ChatPage(),
             routes: {
               SettingsPage.routeName: (context) => SettingsPage(),
             },

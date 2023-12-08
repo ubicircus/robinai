@@ -46,6 +46,10 @@ dependencies:
   dart_openai: ^4.0.0
   langchain_openai: ^0.0.14+1
   mockito: ^5.4.2
+  flutter_chat_ui: ^1.6.10
+  image_picker: ^1.0.4
+  file_picker: ^6.1.1
+  open_filex: ^4.3.4
 
 dev_dependencies:
   hive_generator: ^2.0.1
