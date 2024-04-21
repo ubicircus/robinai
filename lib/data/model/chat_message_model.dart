@@ -3,7 +3,7 @@ import 'package:hive/hive.dart';
 part 'chat_message_model.g.dart'; // The name of the file that will be generated for type adapters.
 
 @HiveType(typeId: 1) // Ensure the typeId is unique within your project
-class ChatMessageClass extends HiveObject {
+class ChatMessageModel extends HiveObject {
   @HiveField(0)
   final String id;
 
@@ -16,7 +16,7 @@ class ChatMessageClass extends HiveObject {
   @HiveField(3)
   final DateTime timestamp;
 
-  ChatMessageClass({
+  ChatMessageModel({
     required this.id,
     required this.content,
     required this.isUserMessage,

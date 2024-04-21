@@ -5,20 +5,19 @@ class ChatLocalDataSource {
   final String _boxName = "chat_history_box";
 
   Future<Box> openChatBox() async {
-    return await Hive.openBox<ChatMessageClass>(_boxName);
+    return await Hive.openBox<ChatMessage>(_boxName);
   }
 
-  Future<void> addChatMessage(ChatMessageClass chatMessage) async {
+  Future<void> addChatMessage(ChatMessage chatMessage) async {
     var box = await openChatBox();
     await box.add(chatMessage);
     // When done with a box, close it.
     await box.close();
   }
 
-  Future<List<ChatMessageClass>> getChatMessages() async {
+  Future<List<ChatMessage>> getChatMessages() async {
     var box = await openChatBox();
-    List<ChatMessageClass> messages =
-        box.values.toList().cast<ChatMessageClass>();
+    List<ChatMessage> messages = box.values.toList().cast<ChatMessage>();
     // When done with a box, close it.
     await box.close();
     return messages;

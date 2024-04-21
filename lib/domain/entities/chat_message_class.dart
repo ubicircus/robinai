@@ -1,4 +1,4 @@
-class ChatMessageClass {
+class ChatMessage {
   final String id; // Unique id for each message
   final String content; // Message content
   final bool
@@ -6,7 +6,7 @@ class ChatMessageClass {
   final DateTime timestamp; // Time when the message was sent
   // final String threadId; - to be added - first go simple
 
-  ChatMessageClass({
+  ChatMessage({
     required this.id,
     required this.content,
     required this.isUserMessage,

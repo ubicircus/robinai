@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:robin_ai/data/datasources/chat_local.dart';
+// import 'package:robin_ai/data/datasources/chat_local.dart';
 import 'package:robin_ai/data/datasources/chat_network.dart';
 import 'package:robin_ai/data/repository/chat_repository.dart';
 
@@ -9,8 +9,8 @@ import 'presentation/provider/chat_provider.dart';
 import 'presentation/pages/main_page.dart';
 import 'presentation/pages/settings_page.dart';
 import 'presentation/provider/theme_provider.dart';
-import 'domain/usecases/send_message.dart';
-import 'domain/usecases/fetch_all_messages.dart';
+import 'domain/usecases/messages/send_message.dart';
+// import 'domain/usecases/messages/fetch_all_messages.dart';
 import 'domain/entities/app_themes.dart';
 import 'data/model/chat_message_model.dart';
 
@@ -22,35 +22,36 @@ void main() async {
   await Hive.initFlutter();
 
   // Register the adapter
-  Hive.registerAdapter(ChatMessageClassAdapter());
+  Hive.registerAdapter(ChatMessageModelAdapter());
 
   await Hive.openBox('chatHistory');
   await Hive.openBox('threads');
 
   // Move the instantiation to the main function.
-  final chatLocalDataSource = ChatLocalDataSource();
+  // final chatLocalDataSource = ChatLocalDataSource();
   final chatNetworkDataSource = ChatNetworkDataSource();
   final chatRepository = ChatRepository(
-    localDataSource: chatLocalDataSource,
+    // localDataSource: chatLocalDataSource,
     networkDataSource: chatNetworkDataSource,
   );
   final sendMessageUseCase = SendMessageUseCase(chatRepository: chatRepository);
-  final fetchAllMessagesUseCase =
-      FetchAllMessagesUseCase(chatRepository: chatRepository);
+  // final fetchAllMessagesUseCase =
+  // FetchAllMessagesUseCase(chatRepository: chatRepository);
 
   runApp(MyApp(
     sendMessageUseCase: sendMessageUseCase,
-    fetchAllMessagesUseCase: fetchAllMessagesUseCase,
+    // fetchAllMessagesUseCase: fetchAllMessagesUseCase,
   ));
 }
 
 class MyApp extends StatelessWidget {
   final SendMessageUseCase sendMessageUseCase;
-  final FetchAllMessagesUseCase fetchAllMessagesUseCase;
+  // final FetchAllMessagesUseCase fetchAllMessagesUseCase;
 
-  MyApp(
-      {required this.sendMessageUseCase,
-      required this.fetchAllMessagesUseCase});
+  MyApp({
+    required this.sendMessageUseCase,
+    // required this.fetchAllMessagesUseCase
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -60,8 +61,9 @@ class MyApp extends StatelessWidget {
             create: (context) => ThemeProvider(AppThemes.tealTheme)),
         ChangeNotifierProvider<ChatProvider>(
             create: (context) => ChatProvider(
-                sendMessage: sendMessageUseCase,
-                fetchAllMessages: fetchAllMessagesUseCase)),
+                  sendMessageUseCase: sendMessageUseCase,
+                  // fetchAllMessages: fetchAllMessagesUseCase,
+                )),
       ],
       child: Builder(
         builder: (context) {

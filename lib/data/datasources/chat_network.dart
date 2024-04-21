@@ -1,71 +1,46 @@
-import 'package:langchain/langchain.dart';
+import 'package:langchain/langchain.dart' hide ChatMessage;
 import 'package:langchain_openai/langchain_openai.dart';
-import 'package:uuid/uuid.dart';
 
 import '../../env/env.dart';
 import '../../domain/entities/chat_message_class.dart';
+import '../model/chat_message_network_model.dart';
+import '../model/chat_message_mapper.dart'; // Make sure to import the mapper
 
 class ChatNetworkDataSource {
-  var uuid = Uuid();
-
   // POST request to send a message
-  Future<ChatMessageClass> sendChatMessage(ChatMessageClass message) async {
-    final response = await askLLM(message.content);
+  Future<ChatMessageNetworkModel> sendChatMessage(
+      ChatMessageNetworkModel message) async {
+    print(message.content);
+    final dynamic response = await askLLM(message.content);
 
-    // return the correct type - ChatMessage
-    return ChatMessageClass(
-        id: uuid.v1(),
-        content: response,
-        isUserMessage: false,
-        timestamp: DateTime.now());
+    // Use a mapper to convert network model back to domain entity
+    return ChatMessageMapper.fromNetworkResponse(response);
   }
 }
 
 Future<dynamic> askLLM(String input) async {
-  final model = ChatOpenAI(
+  final ChatOpenAI model = ChatOpenAI(
     apiKey: Env.openAIKey,
     model: 'gpt-3.5-turbo-0613',
   );
 
-  //the system prompt should be injected here according to the ceontext or the history
-  final promptTemplate = SystemChatMessagePromptTemplate.fromTemplate(
-      '''You are a helpful assistant.
-''');
-  final humanTemplate = HumanChatMessagePromptTemplate.fromTemplate('{text}');
-  final chatPrompt = ChatPromptTemplate.fromPromptMessages([
+  final SystemChatMessagePromptTemplate promptTemplate =
+      SystemChatMessagePromptTemplate.fromTemplate(
+          'You are a helpful assistant.\n');
+
+  final HumanChatMessagePromptTemplate humanTemplate =
+      HumanChatMessagePromptTemplate.fromTemplate('{text}');
+
+  final ChatPromptTemplate chatPrompt = ChatPromptTemplate.fromPromptMessages([
     promptTemplate,
     humanTemplate,
   ]);
 
-  const stringOutputParser = StringOutputParser();
-  final chain = Runnable.fromList([chatPrompt, model, stringOutputParser]);
+  const StringOutputParser stringOutputParser = StringOutputParser();
+  final Runnable chain =
+      Runnable.fromList([chatPrompt, model, stringOutputParser]);
 
   var result = await chain.invoke({'text': input});
-  //utf8.decode(taskOutput.runes.toList()),
 
   return result;
 }
-
-
-
-  // // GET request to fetch all messages
-  // Future<List<ChatMessage>> fetchAllMessages() async {
-  //   final response = await http.get(Uri.parse('$_baseUrl/messages'));
-
-  //   if (response.statusCode == 200) {
-  //     List<dynamic> jsonMessages = jsonDecode(response.body);
-  //     List<ChatMessage> chatMessages = jsonMessages.map((jsonMsg) {
-  //       return ChatMessage(
-  //           content: jsonMsg['message'],
-  //           isUserMessage: jsonMsg['isUser'] == 'true',
-  //           id: jsonMsg['uuid'],
-  //           timestamp: jsonMsg['timestamp']
-  //           // Parse other fields as necessary
-  //           );
-  //     }).toList();
-
-  //     return chatMessages;
-  //   } else {
-  //     throw Exception('Failed to load messages');
-  //   }
-  // }

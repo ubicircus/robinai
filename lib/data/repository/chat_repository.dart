@@ -1,49 +1,42 @@
 import 'dart:async';
 
 import '../../domain/entities/chat_message_class.dart';
-import '../datasources/chat_local.dart';
+import '../../domain/interfaces/chat_repository_interface.dart';
 import '../datasources/chat_network.dart';
+import '../../../core/error_messages.dart';
+import '../model/chat_message_network_model.dart';
+import '../model/chat_message_mapper.dart'; // Import the mapper
 
-class ChatRepository {
+class ChatRepository implements IChatRepository {
   final ChatNetworkDataSource networkDataSource;
-  final ChatLocalDataSource localDataSource;
 
-  ChatRepository(
-      {required this.networkDataSource, required this.localDataSource});
+  ChatRepository({required this.networkDataSource});
 
-  Future<ChatMessageClass> sendChatMessage(ChatMessageClass message) async {
+  Future<ChatMessage> sendChatMessage(ChatMessage message) async {
     try {
-      // Save user's message to local storage
-      // await localDataSource.addChatMessage(message);
+      ChatMessageNetworkModel networkModel =
+          ChatMessageMapper.toNetworkModel(message);
 
-      // Send the message to OpenAI API
-      final responseMessage = await networkDataSource.sendChatMessage(message);
+      // Process the message
+      ChatMessageNetworkModel responseNetworkModel =
+          await _sendMessageToNetworkAndGetResponse(networkModel);
+      ChatMessage responseMessage =
+          ChatMessageMapper.fromNetworkModel(responseNetworkModel);
 
-      // Save OpenAI's response to local storage
-      // await localDataSource.addChatMessage(responseMessage);
-
-      // Return OpenAI's response message
       return responseMessage;
     } catch (error) {
-      // Handle or rethrow the error happens while sending message or saving in local DB
-      throw error;
+      print('Failed to send message: $error');
+      throw ErrorMessages.sendAndSaveFailed;
     }
   }
 
-  Future<List<ChatMessageClass>> fetchChatMessages() async {
+  Future<ChatMessageNetworkModel> _sendMessageToNetworkAndGetResponse(
+      ChatMessageNetworkModel message) async {
     try {
-      // Fetch messages only from local storage
-      final localMessages = await localDataSource.getChatMessages();
-
-      // Check if localMessages is not empty and return the messages.
-      // Otherwise, return an empty list instead of throwing an exception.
-      return localMessages.isNotEmpty ? localMessages : [];
+      return await networkDataSource.sendChatMessage(message);
     } catch (error) {
-      // You might want to log this error or handle it differently
-      print('An error occurred while fetching chat messages: $error');
-      // You could return an empty list here as well, depending on your needs.
-      // But for now, let's rethrow the error so we can handle it upstream.
-      throw error;
+      print('Failed to send message to network: $error');
+      throw ErrorMessages.sendNetworkFailed;
     }
   }
 }

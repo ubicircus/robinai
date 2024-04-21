@@ -1,38 +1,43 @@
-import 'package:flutter/material.dart';
-import '../../domain/usecases/send_message.dart';
-import '../../domain/usecases/fetch_all_messages.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
+import 'package:robin_ai/domain/mappers/chat_message_mapper.dart';
+import 'package:robin_ai/domain/usecases/messages/send_message.dart';
 import '../../domain/entities/chat_message_class.dart';
 
+import 'package:uuid/uuid.dart';
+
 class ChatProvider with ChangeNotifier {
-  // Instantiate the usecases
-  final SendMessageUseCase sendMessage;
-  final FetchAllMessagesUseCase fetchAllMessages;
+  final SendMessageUseCase sendMessageUseCase;
+  List<types.Message> messages = [];
 
-  // Maintains the messages received
-  List<ChatMessageClass> _messages = [];
+  ChatProvider({required this.sendMessageUseCase});
 
-  // Getter to access the message list
-  List<ChatMessageClass> get messages => [..._messages];
-
-  // Constructor taking the usecases as dependencies
-  ChatProvider({required this.sendMessage, required this.fetchAllMessages}) {
-    // Retrieve the messages when the provider is created
-    retrieveMessages();
-  }
-
-  // Method to retrieve all the messages
-  Future<void> retrieveMessages() async {
-    final messages = await fetchAllMessages();
-    _messages = messages;
+  void addMessage(types.Message message) {
+    messages.insert(0, message);
     notifyListeners();
   }
 
-  // Method to add a new message to the list and send it
-  Future<void> addMessage(ChatMessageClass message) async {
-    _messages.add(message);
-    notifyListeners();
-    final responseMessage = await sendMessage(message);
-    _messages.add(responseMessage);
-    notifyListeners();
+  Future<void> handleSendPressed(String text) async {
+    final textMessage = types.TextMessage(
+      author: types.User(
+          id: const Uuid()
+              .v4()), // Assume every sent message is from a new user for now
+      createdAt: DateTime.now().millisecondsSinceEpoch,
+      id: const Uuid().v4(),
+      text: text,
+    );
+
+    // Convert UI model to domain model for repository handling
+    final chatMessage = MessageMapper.textMessageToChatMessage(textMessage);
+
+    try {
+      final sendMessage = await sendMessageUseCase.call(chatMessage);
+      // Optionally convert back to UI model if the response is required to update the UI
+      final uiMessage = MessageMapper.chatMessageToTextMessage(sendMessage);
+      addMessage(uiMessage);
+    } catch (e) {
+      print('Error when sending message: $e');
+      // Handle error state if needed
+    }
   }
 }

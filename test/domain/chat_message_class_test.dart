@@ -2,9 +2,9 @@ import 'package:flutter_test/flutter_test.dart';
 import '../../lib/domain/entities/chat_message_class.dart';
 
 void main() {
-  group('ChatMessageClass', () {
-    test('Should create a valid ChatMessageClass object', () {
-      final message = ChatMessageClass(
+  group('ChatMessage', () {
+    test('Should create a valid ChatMessage object', () {
+      final message = ChatMessage(
         id: '2',
         content: 'Hello!',
         isUserMessage: true,
