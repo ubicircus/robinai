@@ -7,6 +7,7 @@ import 'package:robin_ai/domain/entities/chat_message_class.dart';
 import 'package:robin_ai/domain/entities/thread_class.dart';
 import 'package:robin_ai/domain/usecases/threads/get_last_thread_id_usecase.dart';
 import 'package:robin_ai/domain/usecases/threads/get_thread_details_by_id_usecase.dart';
+import 'package:robin_ai/domain/usecases/threads/get_threads_list_usecase.dart';
 import 'package:robin_ai/presentation/bloc/chat_bloc.dart';
 
 import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
@@ -58,6 +59,12 @@ class _MyAppState extends State<MyApp> {
                   chatLocalDataSource: ChatLocalDataSource(),
                 ),
               ),
+              getThreadListUseCase: GetThreadListUseCase(
+                repository: ChatRepository(
+                  networkDataSource: ChatNetworkDataSource(),
+                  chatLocalDataSource: ChatLocalDataSource(),
+                ),
+              ),
             ),
           ),
         ],
@@ -82,6 +89,33 @@ class ChatPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Chat Page'),
+      ),
+      drawer: Drawer(
+        child: BlocBuilder<ChatBloc, ChatState>(
+          builder: (context, state) {
+            print(state.threads);
+            BlocProvider.of<ChatBloc>(context).add(
+                LoadThreadsEvent()); // Dispatch LoadThreadsEvent to fetch threads
+            if (state.threads.isEmpty) {
+              return Center(
+                child: CircularProgressIndicator(),
+              );
+            } else if (state.threads.isNotEmpty) {
+              return ListView.builder(
+                shrinkWrap: true,
+                itemCount: state.threads.length,
+                itemBuilder: (context, index) {
+                  final thread = state.threads[index];
+                  return ListTile(
+                    title: Text(thread.name),
+                  );
+                },
+              );
+            } else {
+              return Text('No threads available');
+            }
+          },
+        ),
       ),
       body: BlocBuilder<ChatBloc, ChatState>(
         builder: (context, state) {

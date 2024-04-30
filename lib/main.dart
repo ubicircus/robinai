@@ -7,6 +7,7 @@ import 'package:robin_ai/data/model/thread_model.dart';
 import 'package:robin_ai/data/repository/chat_repository.dart';
 import 'package:robin_ai/domain/usecases/threads/get_last_thread_id_usecase.dart';
 import 'package:robin_ai/domain/usecases/threads/get_thread_details_by_id_usecase.dart';
+import 'package:robin_ai/domain/usecases/threads/get_threads_list_usecase.dart';
 
 // import 'presentation/provider/chat_provider.dart';
 import 'presentation/pages/main_page.dart';
@@ -50,6 +51,7 @@ void main() async {
       GetLastThreadIdUseCase(repository: chatRepository);
   final getThreadDetailsByIdUseCase =
       GetThreadDetailsByIdUseCase(chatRepository: chatRepository);
+  final getThreadListUseCase = GetThreadListUseCase(repository: chatRepository);
 
   runApp(BlocProvider<ChatBloc>(
     create: (context) => ChatBloc(
@@ -57,6 +59,7 @@ void main() async {
       chatRepository: chatRepository,
       getLastThreadIdUseCase: getLastThreadIdUseCase,
       getThreadDetailsByIdUseCase: getThreadDetailsByIdUseCase,
+      getThreadListUseCase: getThreadListUseCase,
     ),
     child: MyApp(),
   ));

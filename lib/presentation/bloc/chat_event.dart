@@ -17,6 +17,8 @@ class SendMessageEvent extends ChatEvent {
   SendMessageEvent({required this.chatMessage, required this.threadId});
 }
 
+class LoadThreadsEvent extends ChatEvent {}
+
 // chat_state.dart
 
 // class ChatState {

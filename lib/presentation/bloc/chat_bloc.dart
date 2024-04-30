@@ -5,6 +5,7 @@ import 'package:robin_ai/domain/entities/thread_class.dart';
 import 'package:robin_ai/domain/usecases/messages/send_message.dart';
 import 'package:robin_ai/domain/usecases/threads/get_last_thread_id_usecase.dart';
 import 'package:robin_ai/domain/usecases/threads/get_thread_details_by_id_usecase.dart';
+import 'package:robin_ai/domain/usecases/threads/get_threads_list_usecase.dart';
 import 'package:uuid/uuid.dart';
 
 part 'chat_event.dart';
@@ -15,16 +16,18 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   final ChatRepository chatRepository;
   final GetLastThreadIdUseCase getLastThreadIdUseCase;
   final GetThreadDetailsByIdUseCase getThreadDetailsByIdUseCase;
+  final GetThreadListUseCase getThreadListUseCase;
 
   ChatBloc({
     required this.sendMessageUseCase,
     required this.chatRepository,
     required this.getLastThreadIdUseCase,
     required this.getThreadDetailsByIdUseCase,
+    required this.getThreadListUseCase,
   }) : super(ChatState.initial()) {
     on<SendMessageEvent>(_handleSendMessage);
-    // on<LoadMessagesEvent>(_handleLoadMessages);
     on<InitializeAppEvent>(_handleInitializeApp);
+    on<LoadThreadsEvent>(_handleLoadThreads); // Add this line
   }
 
   void _handleSendMessage(
@@ -80,20 +83,31 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     try {
       final lastThreadId = await getLastThreadIdUseCase.call();
       print('Last Thread ID: $lastThreadId');
+
       final lastThread =
           await getThreadDetailsByIdUseCase.call(threadId: lastThreadId);
-
       print('Last Thread Details: $lastThread');
-      final updatedThread = Thread(
-        id: lastThread.id,
-        messages: lastThread.messages,
-        name: lastThread.name,
-      );
 
-      emit(state.copyWith(thread: updatedThread));
+      final updatedThread = Thread(
+          id: lastThread.id,
+          messages: lastThread.messages,
+          name: lastThread.name);
+
+      emit(state.copyWith(thread: updatedThread)); // Update with current thread
     } catch (e) {
       // Handle error during app initialization
       rethrow;
+    }
+  }
+
+  void _handleLoadThreads(
+      LoadThreadsEvent event, Emitter<ChatState> emit) async {
+    try {
+      final threads = await getThreadListUseCase.call();
+      emit(state.copyWith(threads: threads));
+    } catch (e) {
+      // Handle error case here
+      emit(state); // Keep the state unchanged in case of an error
     }
   }
 }
