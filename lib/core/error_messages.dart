@@ -14,6 +14,16 @@ class ErrorMessages {
   static const String registerUserFailed = 'Failed to register user';
   static const String updateUserProfileFailed = 'Failed to update user profile';
 
+// error messages for local storage
+  static const String initializationLocalStorageFailed =
+      "Failed to initialize local storage.";
+  static const String initializationLocalStorageFailedDetails =
+      "No additional details available.";
+  static const String saveDataLocallyFailed = "Failed to save data locally.";
+  static const String fetchDataLocalltyFailed =
+      "Failed to fetch data from local storage.";
+  static const String closeDataLocallyFailed = "Failed to close data resource.";
+
   // Add getters for the error messages
   static String get sendAndSaveFailedErrorMessage => sendAndSaveFailed;
   static String get fetchFailedErrorMessage => fetchFailed;

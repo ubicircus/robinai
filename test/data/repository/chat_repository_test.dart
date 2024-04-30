@@ -1,8 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
-import 'package:robin_ai/data/model/chat_message_mapper.dart';
+import 'package:robin_ai/data/model/chat_message_network_mapper.dart';
 import 'package:robin_ai/domain/entities/chat_message_class.dart';
-import 'package:robin_ai/data/datasources/chat_local.dart';
 import 'package:robin_ai/data/datasources/chat_network.dart';
 import 'package:robin_ai/data/repository/chat_repository.dart';
 import 'package:robin_ai/core/error_messages.dart';

@@ -1,18 +1,21 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+// import 'package:provider/provider.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 // import 'package:robin_ai/data/datasources/chat_local.dart';
 import 'package:robin_ai/data/datasources/chat_network.dart';
 import 'package:robin_ai/data/repository/chat_repository.dart';
 
-import 'presentation/provider/chat_provider.dart';
+// import 'presentation/provider/chat_provider.dart';
 import 'presentation/pages/main_page.dart';
 import 'presentation/pages/settings_page.dart';
-import 'presentation/provider/theme_provider.dart';
+// import 'presentation/provider/theme_provider.dart';
 import 'domain/usecases/messages/send_message.dart';
 // import 'domain/usecases/messages/fetch_all_messages.dart';
 import 'domain/entities/app_themes.dart';
-import 'data/model/chat_message_model.dart';
+import 'data/model/chat_message_local_model.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'presentation/bloc/chat_bloc.dart';
+import 'data/datasources/chat_local.dart';
 
 void main() async {
   // Ensure initialized.
@@ -22,73 +25,81 @@ void main() async {
   await Hive.initFlutter();
 
   // Register the adapter
-  Hive.registerAdapter(ChatMessageModelAdapter());
+  Hive.registerAdapter(ChatMessageLocalAdapter());
 
-  await Hive.openBox('chatHistory');
-  await Hive.openBox('threads');
+  // await Hive.openBox('chatHistory');
+  // await Hive.openBox('threads');
 
-  // Move the instantiation to the main function.
-  // final chatLocalDataSource = ChatLocalDataSource();
+  // Create an instance of ChatNetworkDataSource
   final chatNetworkDataSource = ChatNetworkDataSource();
-  final chatRepository = ChatRepository(
-    // localDataSource: chatLocalDataSource,
-    networkDataSource: chatNetworkDataSource,
-  );
-  final sendMessageUseCase = SendMessageUseCase(chatRepository: chatRepository);
-  // final fetchAllMessagesUseCase =
-  // FetchAllMessagesUseCase(chatRepository: chatRepository);
+  final chatLocalDataSource = ChatLocalDataSource();
 
-  runApp(MyApp(
-    sendMessageUseCase: sendMessageUseCase,
-    // fetchAllMessagesUseCase: fetchAllMessagesUseCase,
+  // Create an instance of ChatRepository
+  final chatRepository = ChatRepository(
+    networkDataSource: chatNetworkDataSource,
+    chatLocalDataSource: chatLocalDataSource,
+  );
+
+  // Create an instance of SendMessageUseCase
+  final sendMessageUseCase = SendMessageUseCase(chatRepository: chatRepository);
+
+  runApp(BlocProvider<ChatBloc>(
+    create: (context) => ChatBloc(
+      sendMessageUseCase: sendMessageUseCase,
+      chatRepository: chatRepository,
+    ),
+    child: MyApp(),
   ));
 }
 
-class MyApp extends StatelessWidget {
-  final SendMessageUseCase sendMessageUseCase;
-  // final FetchAllMessagesUseCase fetchAllMessagesUseCase;
+class MyApp extends StatefulWidget {
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
 
-  MyApp({
-    required this.sendMessageUseCase,
-    // required this.fetchAllMessagesUseCase
-  });
+class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
+  late ChatLocalDataSource chatLocalDataSource;
+
+  @override
+  void initState() {
+    super.initState();
+    chatLocalDataSource = ChatLocalDataSource();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    chatLocalDataSource.closeBox(); // Close Hive box
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.detached) {
+      chatLocalDataSource
+          .closeBox(); // Close Hive box when app is fully terminated
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    return MultiProvider(
-      providers: [
-        ChangeNotifierProvider<ThemeProvider>(
-            create: (context) => ThemeProvider(AppThemes.tealTheme)),
-        ChangeNotifierProvider<ChatProvider>(
-            create: (context) => ChatProvider(
-                  sendMessageUseCase: sendMessageUseCase,
-                  // fetchAllMessages: fetchAllMessagesUseCase,
-                )),
-      ],
-      child: Builder(
-        builder: (context) {
-          final themeProvider = Provider.of<ThemeProvider>(context);
-          return MaterialApp(
-            title: 'Flutter Smart Application',
-            debugShowCheckedModeBanner: false,
-            theme: ThemeData(
-              primarySwatch: Colors.teal, // Setting the primary swatch to Teal
-              colorScheme: ColorScheme.fromSeed(seedColor: Colors.teal),
-              visualDensity: VisualDensity.adaptivePlatformDensity,
-              textTheme: ThemeData.light().textTheme.copyWith(
-                    bodyLarge: TextStyle(color: Colors.teal.shade600),
-                    bodyMedium: TextStyle(color: Colors.teal.shade600),
-                    bodySmall: TextStyle(color: Colors.teal.shade600),
-                    // Define other text styles like `headline1`, `headline2`,... if needed
-                  ),
+    return MaterialApp(
+      title: 'Robin AI Assistant',
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        primarySwatch: Colors.teal,
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.teal),
+        visualDensity: VisualDensity.adaptivePlatformDensity,
+        textTheme: ThemeData.light().textTheme.copyWith(
+              bodyText1: TextStyle(color: Colors.teal.shade600),
+              bodyText2: TextStyle(color: Colors.teal.shade600),
             ),
-            home: ChatPage(),
-            routes: {
-              SettingsPage.routeName: (context) => SettingsPage(),
-            },
-          );
-        },
       ),
+      home: ChatPage(),
+      routes: {
+        SettingsPage.routeName: (context) => SettingsPage(),
+      },
     );
   }
 }

@@ -1,27 +1,52 @@
 import 'dart:async';
 
+import 'package:robin_ai/data/datasources/chat_local.dart';
+
 import '../../domain/entities/chat_message_class.dart';
 import '../../domain/interfaces/chat_repository_interface.dart';
 import '../datasources/chat_network.dart';
 import '../../../core/error_messages.dart';
 import '../model/chat_message_network_model.dart';
-import '../model/chat_message_mapper.dart'; // Import the mapper
+import '../model/chat_message_network_mapper.dart';
+import '../model/chat_message_local_mapper.dart';
+import '../model/chat_message_local_model.dart';
 
 class ChatRepository implements IChatRepository {
   final ChatNetworkDataSource networkDataSource;
+  final ChatLocalDataSource chatLocalDataSource;
 
-  ChatRepository({required this.networkDataSource});
+  ChatRepository({
+    required this.networkDataSource,
+    required this.chatLocalDataSource,
+  });
+
+  Future<void> ensureInitialized() async {
+    if (!chatLocalDataSource.isInitialized) {
+      await chatLocalDataSource.initialize();
+    }
+  }
 
   Future<ChatMessage> sendChatMessage(ChatMessage message) async {
+    await ensureInitialized();
+
     try {
       ChatMessageNetworkModel networkModel =
           ChatMessageMapper.toNetworkModel(message);
 
-      // Process the message
+      // Send the message over the network and handle the response
       ChatMessageNetworkModel responseNetworkModel =
           await _sendMessageToNetworkAndGetResponse(networkModel);
+      chatLocalDataSource
+          .addChatMessageLocal(ChatMessageLocalMapper.toLocalModel(message));
+
       ChatMessage responseMessage =
           ChatMessageMapper.fromNetworkModel(responseNetworkModel);
+      await chatLocalDataSource.addChatMessageLocal(
+          ChatMessageLocalMapper.toLocalModel(responseMessage));
+
+      // Optionally log or handle the retrieved messages
+      var messages = chatLocalDataSource.getChatMessagesLocal();
+      print('Retrieved messages: $messages');
 
       return responseMessage;
     } catch (error) {

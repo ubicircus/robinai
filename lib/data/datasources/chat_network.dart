@@ -2,9 +2,8 @@ import 'package:langchain/langchain.dart' hide ChatMessage;
 import 'package:langchain_openai/langchain_openai.dart';
 
 import '../../env/env.dart';
-import '../../domain/entities/chat_message_class.dart';
 import '../model/chat_message_network_model.dart';
-import '../model/chat_message_mapper.dart'; // Make sure to import the mapper
+import '../model/chat_message_network_mapper.dart'; // Make sure to import the mapper
 
 class ChatNetworkDataSource {
   // POST request to send a message
@@ -25,8 +24,7 @@ Future<dynamic> askLLM(String input) async {
   );
 
   final SystemChatMessagePromptTemplate promptTemplate =
-      SystemChatMessagePromptTemplate.fromTemplate(
-          'You are a helpful assistant.\n');
+      SystemChatMessagePromptTemplate.fromTemplate('You only talk like yoda\n');
 
   final HumanChatMessagePromptTemplate humanTemplate =
       HumanChatMessagePromptTemplate.fromTemplate('{text}');
