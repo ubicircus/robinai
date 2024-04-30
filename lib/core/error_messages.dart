@@ -13,6 +13,9 @@ class ErrorMessages {
   static const String loginUserFailed = 'Failed to login user';
   static const String registerUserFailed = 'Failed to register user';
   static const String updateUserProfileFailed = 'Failed to update user profile';
+  static const String threadDetailsNotFoundException =
+      "Thread details not found";
+  static const String threadDetailsFailed = "Failed to find thread details";
 
 // error messages for local storage
   static const String initializationLocalStorageFailed =

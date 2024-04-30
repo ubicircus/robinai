@@ -33,3 +33,18 @@ class CloseDataException implements Exception {
   @override
   String toString() => message;
 }
+
+class ThreadDetailsNotFoundException implements Exception {
+  final String message;
+  ThreadDetailsNotFoundException(
+      [this.message = ErrorMessages.threadDetailsNotFoundException]);
+  @override
+  String toString() => message;
+}
+
+class FetchThreadDetailsFailed implements Exception {
+  final String message;
+  FetchThreadDetailsFailed([this.message = ErrorMessages.threadDetailsFailed]);
+  @override
+  String toString() => message;
+}

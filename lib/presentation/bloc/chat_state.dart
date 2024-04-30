@@ -1,15 +1,16 @@
 part of 'chat_bloc.dart';
 
 class ChatState {
-  final List<ChatMessage> messages;
+  final Thread? thread;
 
-  ChatState({required this.messages});
+  ChatState({this.thread});
 
   factory ChatState.initial() {
-    return ChatState(messages: []);
+    return ChatState(
+        thread: Thread(id: Uuid().v4(), name: "New Chat", messages: []));
   }
 
-  ChatState copyWith({List<ChatMessage>? messages}) {
-    return ChatState(messages: messages ?? this.messages);
+  ChatState copyWith({Thread? thread}) {
+    return ChatState(thread: thread ?? this.thread);
   }
 }

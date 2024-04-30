@@ -5,10 +5,11 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:robin_ai/data/datasources/chat_network.dart';
 import 'package:robin_ai/data/model/thread_model.dart';
 import 'package:robin_ai/data/repository/chat_repository.dart';
+import 'package:robin_ai/domain/usecases/threads/get_last_thread_id_usecase.dart';
+import 'package:robin_ai/domain/usecases/threads/get_thread_details_by_id_usecase.dart';
 
 // import 'presentation/provider/chat_provider.dart';
 import 'presentation/pages/main_page.dart';
-import 'presentation/pages/settings_page.dart';
 // import 'presentation/provider/theme_provider.dart';
 import 'domain/usecases/messages/send_message.dart';
 // import 'domain/usecases/messages/fetch_all_messages.dart';
@@ -28,6 +29,7 @@ void main() async {
   // Register the adapter
   Hive.registerAdapter(ChatMessageLocalAdapter());
   Hive.registerAdapter(ThreadModelAdapter());
+  Hive.registerAdapter(MessageAdapter());
 
   // await Hive.openBox('chatHistory');
   // await Hive.openBox('threads');
@@ -44,11 +46,17 @@ void main() async {
 
   // Create an instance of SendMessageUseCase
   final sendMessageUseCase = SendMessageUseCase(chatRepository: chatRepository);
+  final getLastThreadIdUseCase =
+      GetLastThreadIdUseCase(repository: chatRepository);
+  final getThreadDetailsByIdUseCase =
+      GetThreadDetailsByIdUseCase(chatRepository: chatRepository);
 
   runApp(BlocProvider<ChatBloc>(
     create: (context) => ChatBloc(
       sendMessageUseCase: sendMessageUseCase,
       chatRepository: chatRepository,
+      getLastThreadIdUseCase: getLastThreadIdUseCase,
+      getThreadDetailsByIdUseCase: getThreadDetailsByIdUseCase,
     ),
     child: MyApp(),
   ));
@@ -99,9 +107,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
             ),
       ),
       home: ChatPage(),
-      routes: {
-        SettingsPage.routeName: (context) => SettingsPage(),
-      },
+      routes: {},
     );
   }
 }

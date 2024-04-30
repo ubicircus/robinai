@@ -1,31 +1,23 @@
+import 'package:robin_ai/data/model/thread_model.dart';
+
 import '../../domain/entities/chat_message_class.dart';
-import 'chat_message_local_model.dart';
 
 class ChatMessageLocalMapper {
-  static ChatMessageLocal toLocalModel(ChatMessage message) {
-    return ChatMessageLocal(
-      id: message.id,
+  static Message toLocalModel(ChatMessage message) {
+    return Message(
+      messageID: message.id,
       content: message.content,
-      timestamp: message.timestamp,
       isUserMessage: message.isUserMessage,
+      timestamp: message.timestamp,
     );
   }
 
-  static ChatMessage fromLocalModel(ChatMessageLocal networkModel) {
+  static ChatMessage fromLocalModel(Message localModel) {
     return ChatMessage(
-      id: networkModel.id,
-      isUserMessage: networkModel.isUserMessage,
-      content: networkModel.content,
-      timestamp: networkModel.timestamp,
+      id: localModel.messageID,
+      content: localModel.content,
+      isUserMessage: localModel.isUserMessage,
+      timestamp: localModel.timestamp,
     );
   }
-
-//   static ChatMessageLocal fromLocalResponse(dynamic response) {
-//     return ChatMessageLocal(
-//       content: response, // Assuming `response` is just the message text.
-//       id: _uuid.v1(), // Reusing the UUID instance
-//       timestamp: DateTime.now(),
-//       isUserMessage: response
-//     );
-//   }
 }

@@ -1,13 +1,13 @@
+import 'package:robin_ai/domain/entities/chat_message_class.dart';
+
 class Thread {
-  final String id; // Unique identifier for the thread
-  final List<String> participantIds; // List of participant user IDs
-  final String lastMessage; // Preview or content of the last message sent
-  final DateTime lastMessageTime; // Timestamp of the last message
+  final String id;
+  final List<ChatMessage> messages;
+  final String name;
 
   Thread({
     required this.id,
-    required this.participantIds,
-    required this.lastMessage,
-    required this.lastMessageTime,
+    required this.messages,
+    required this.name,
   });
 }

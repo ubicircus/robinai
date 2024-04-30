@@ -8,9 +8,12 @@ class SendMessageUseCase {
 
   SendMessageUseCase({required this.chatRepository});
 
-  Future<ChatMessage> call(ChatMessage message) async {
+  Future<ChatMessage> call(String threadId, ChatMessage message) async {
     try {
-      final responseMessage = await chatRepository.sendChatMessage(message);
+      final responseMessage = await chatRepository.sendChatMessage(
+        threadId: threadId,
+        message: message,
+      );
       return responseMessage;
     } catch (e) {
       // Log the error or handle it appropriately

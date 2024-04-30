@@ -1,27 +1,43 @@
 import 'package:hive/hive.dart';
-import 'chat_message_local_model.dart';
 import 'package:uuid/uuid.dart';
 
 part 'thread_model.g.dart';
 
-@HiveType(typeId: 1)
+@HiveType(typeId: 2)
 class ThreadModel extends HiveObject {
   @HiveField(0)
-  final String id; // UUID field
+  final String id; // Unique identifier for the thread
 
   @HiveField(1)
-  final List<ChatMessageLocal> messages;
+  final List<Message> messages;
 
   @HiveField(2)
-  final DateTime lastMessageTime;
+  final String name; // Name of the thread based on topic or participants etc.
+
+  ThreadModel({String? id, List<Message>? messages, required this.name})
+      : this.id = id ?? Uuid().v4(),
+        this.messages = messages ?? [];
+}
+
+// Defines the structure of a singular message within a thread.
+@HiveType(typeId: 3) // update Hive typeID to make it unique
+class Message extends HiveObject {
+  @HiveField(0)
+  final String messageID;
+
+  @HiveField(1)
+  final String content;
+
+  @HiveField(2)
+  final bool isUserMessage;
 
   @HiveField(3)
-  final String name; // Name of the thread
+  final DateTime timestamp;
 
-  ThreadModel(
-      {String? id,
-      required this.messages,
-      required this.lastMessageTime,
-      required this.name})
-      : this.id = id ?? Uuid().v4();
+  Message({
+    required this.messageID,
+    required this.content,
+    required this.isUserMessage,
+    required this.timestamp,
+  });
 }

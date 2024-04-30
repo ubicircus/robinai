@@ -2,13 +2,20 @@ part of 'chat_bloc.dart';
 
 abstract class ChatEvent {}
 
-class SendMessageEvent extends ChatEvent {
-  final ChatMessage chatMessage;
+class InitializeAppEvent extends ChatEvent {}
 
-  SendMessageEvent({required this.chatMessage});
+class LoadMessagesEvent extends ChatEvent {
+  final String threadId;
+
+  LoadMessagesEvent({required this.threadId});
 }
 
-class LoadMessagesEvent extends ChatEvent {}
+class SendMessageEvent extends ChatEvent {
+  final ChatMessage chatMessage;
+  final String threadId;
+
+  SendMessageEvent({required this.chatMessage, required this.threadId});
+}
 
 // chat_state.dart
 

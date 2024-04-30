@@ -4,6 +4,9 @@ import 'package:robin_ai/data/datasources/chat_local.dart';
 import 'package:robin_ai/data/datasources/chat_network.dart';
 import 'package:robin_ai/data/repository/chat_repository.dart';
 import 'package:robin_ai/domain/entities/chat_message_class.dart';
+import 'package:robin_ai/domain/entities/thread_class.dart';
+import 'package:robin_ai/domain/usecases/threads/get_last_thread_id_usecase.dart';
+import 'package:robin_ai/domain/usecases/threads/get_thread_details_by_id_usecase.dart';
 import 'package:robin_ai/presentation/bloc/chat_bloc.dart';
 
 import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
@@ -42,8 +45,19 @@ class _MyAppState extends State<MyApp> {
                       chatLocalDataSource: ChatLocalDataSource())),
               chatRepository: ChatRepository(
                   networkDataSource: ChatNetworkDataSource(),
-                  chatLocalDataSource:
-                      ChatLocalDataSource()), // Provide necessary dependencies
+                  chatLocalDataSource: ChatLocalDataSource()),
+              getLastThreadIdUseCase: GetLastThreadIdUseCase(
+                repository: ChatRepository(
+                  networkDataSource: ChatNetworkDataSource(),
+                  chatLocalDataSource: ChatLocalDataSource(),
+                ),
+              ),
+              getThreadDetailsByIdUseCase: GetThreadDetailsByIdUseCase(
+                chatRepository: ChatRepository(
+                  networkDataSource: ChatNetworkDataSource(),
+                  chatLocalDataSource: ChatLocalDataSource(),
+                ),
+              ),
             ),
           ),
         ],
@@ -72,8 +86,9 @@ class ChatPage extends StatelessWidget {
       body: BlocBuilder<ChatBloc, ChatState>(
         builder: (context, state) {
           return Chat(
-            messages: _mapChatMessages(state.messages),
-            onSendPressed: (message) => _handleSendMessage(context, message),
+            messages: _mapChatMessages(state.thread!.messages),
+            onSendPressed: (message) =>
+                _handleSendMessage(context, message, state.thread!.id),
             showUserAvatars: true,
             showUserNames: true,
             user: _user,
@@ -104,7 +119,9 @@ class ChatPage extends StatelessWidget {
     }).toList();
   }
 
-  void _handleSendMessage(BuildContext context, types.PartialText message) {
+  void _handleSendMessage(
+      BuildContext context, types.PartialText message, String threadId) {
+    print(threadId);
     final chatMessage = ChatMessage(
       id: const Uuid().v4(),
       content: message.text,
@@ -112,6 +129,8 @@ class ChatPage extends StatelessWidget {
       timestamp: DateTime.now(),
     );
 
-    context.read<ChatBloc>().add(SendMessageEvent(chatMessage: chatMessage));
+    context
+        .read<ChatBloc>()
+        .add(SendMessageEvent(threadId: threadId, chatMessage: chatMessage));
   }
 }

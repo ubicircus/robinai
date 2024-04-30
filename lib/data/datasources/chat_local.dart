@@ -1,63 +1,94 @@
 import 'package:flutter/foundation.dart';
 import 'package:hive/hive.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:robin_ai/data/model/chat_message_local_model.dart';
+import 'package:robin_ai/data/model/thread_model.dart';
 
 import 'package:robin_ai/domain/entities/exceptions.dart';
 
 class ChatLocalDataSource {
-  final String _boxName = "chatHistory";
-  late Box<ChatMessageLocal> _chatBox;
+  final String _threadBoxName = "threads";
+  late Box<ThreadModel> _threadBox;
   bool _isInitialized = false;
 
   ChatLocalDataSource() {
     initialize();
   }
 
-  bool get isInitialized => _isInitialized && _chatBox.isOpen;
+  bool get isInitialized => _isInitialized && _threadBox.isOpen;
 
   Future<void> initialize() async {
     try {
       final appDir = await getApplicationDocumentsDirectory();
       Hive.init(appDir.path);
 
-      // Check if box is already open to prevent multiple open instances
-      if (Hive.isBoxOpen(_boxName)) {
-        _chatBox = Hive.box<ChatMessageLocal>(_boxName);
-        print('Using already opened chat box.');
-      } else {
-        _chatBox = await Hive.openBox<ChatMessageLocal>(_boxName);
-        print('Chat box initialized!');
-      }
-
+      _threadBox = await Hive.openBox<ThreadModel>(_threadBoxName);
       _isInitialized = true;
     } catch (e) {
-      print('Error initializing chat box: $e');
+      print('Error initializing thread box: $e');
       throw InitializationException(
-          details: 'Failed to initialize $_boxName due to $e');
+          details: 'Failed to initialize $_threadBoxName due to $e');
     }
   }
 
-  Future<void> addChatMessageLocal(ChatMessageLocal ChatMessageLocal) async {
+  Future<void> addThread(ThreadModel thread) async {
     if (!_isInitialized) {
       throw InitializationException();
     }
     try {
-      await _chatBox.add(ChatMessageLocal);
+      await _threadBox.put(thread.id, thread);
     } catch (e) {
-      print('Error adding chat message: $e');
+      print('Error adding thread: $e');
       rethrow;
     }
   }
 
-  List<ChatMessageLocal> getChatMessagesLocal() {
+  Future<void> addMessageToThread(String threadId, Message message) async {
     if (!_isInitialized) {
       throw InitializationException();
     }
     try {
-      return _chatBox.values.toList().cast<ChatMessageLocal>();
+      var _thread = _threadBox.get(threadId);
+
+      if (_thread != null) {
+        ThreadModel thread = _thread;
+        // thread.messages ??= []; // initialize messages list if it's null
+        thread.messages.add(message);
+        await _threadBox.put(threadId, thread);
+      } else {
+        await createThread(threadId,
+            message); // invoke createThread function with the threadId and new message
+      }
     } catch (e) {
-      print('Error retrieving chat messages: $e');
+      print('Error adding message to thread: $e');
+      rethrow;
+    }
+  }
+
+  List<Message> getAllMessagesFromThread(String threadId) {
+    if (!_isInitialized) {
+      throw InitializationException();
+    }
+    try {
+      ThreadModel thread = _threadBox.get(threadId) as ThreadModel;
+      if (thread != null) {
+        return thread.messages;
+      } else {
+        throw FetchDataException(); // Thread not found
+      }
+    } catch (e) {
+      print('Error retrieving messages from thread: $e');
+      throw FetchDataException();
+    }
+  }
+
+  List<ThreadModel> getAllThreads() {
+    if (!_isInitialized) {
+      throw InitializationException();
+    }
+    try {
+      return _threadBox.values.toList().cast<ThreadModel>();
+    } catch (e) {
+      print('Error retrieving threads: $e');
       throw FetchDataException();
     }
   }
@@ -67,39 +98,67 @@ class ChatLocalDataSource {
       throw InitializationException();
     }
     try {
-      await _chatBox.close();
+      await _threadBox.close();
       _isInitialized = false;
-      print('Chat box closed successfully.');
+      print('Thread box closed successfully.');
     } catch (e) {
-      print('Error closing chat box: $e');
+      print('Error closing thread box: $e');
       throw CloseDataException();
     }
   }
+
+  ThreadModel? getThreadById(String threadId) {
+    if (!_isInitialized) {
+      throw InitializationException();
+    }
+    try {
+      return _threadBox.get(threadId);
+    } catch (e) {
+      print('Error retrieving thread by ID: $e');
+      throw FetchDataException();
+    }
+  }
+
+  // Future<void> updateThreadName(String threadId, String newName) async {
+  //   if (!_isInitialized) {
+  //     throw InitializationException();
+  //   }
+  //   try {
+  //     ThreadModel? threadToUpdate = _threadBox.get(threadId);
+  //     if (threadToUpdate != null) {
+  //       threadToUpdate.name = newName;
+  //       await threadToUpdate.save();
+  //     }
+  //   } catch (e) {
+  //     print('Error updating thread name: $e');
+  //     rethrow;
+  //     // throw UpdateDataException(); //todo
+  //   }
+  // }
+
+  Future<void> createThread(String threadId, Message message) async {
+    try {
+      ThreadModel thread =
+          ThreadModel(id: threadId, messages: [message], name: 'New Chat');
+      await _threadBox.put(threadId, thread);
+    } catch (e) {
+      print('Error creating thread: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> deleteThread(String threadId) async {
+    if (!_isInitialized) {
+      throw InitializationException();
+    }
+    try {
+      await _threadBox.delete(threadId);
+      // Assuming you need to also delete associated messages
+      // Additional logic needed based on your application requirements
+    } catch (e) {
+      print('Error deleting thread and associated messages: $e');
+      rethrow;
+      // throw DeleteDataException(); // todo
+    }
+  }
 }
-
-  // If you need to implement message deletion or updating
-  // you can add those methods here as well.
-
-//   Box<Thread> threadBox = Hive.box<Thread>('threads');
-
-// // Adding a new thread
-// String threadId = UUID().v4(); // Generate a UUID for the new thread
-// await threadBox.put(threadId, Thread(id: threadId, name: 'Thread Name'));
-
-// // Retrieving a thread by ID
-// Thread? thread = threadBox.get(threadId);
-
-// // Getting all threads (e.g., for displaying in UI)
-// List<Thread> allThreads = threadBox.values.toList();
-
-// // Renaming a thread
-// Thread? threadToRename = threadBox.get(threadId);
-// if (threadToRename != null) {
-//   threadToRename.name = 'New Thread Name';
-//   threadToRename.save();
-// }
-
-// // Deleting a thread and its messages
-// await threadBox.delete(threadId);
-// You would also need to delete all messages associated with this thread ID
-
