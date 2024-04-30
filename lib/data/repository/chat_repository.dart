@@ -26,6 +26,7 @@ class ChatRepository implements IChatRepository {
     }
   }
 
+  @override
   Future<ChatMessage> sendChatMessage(ChatMessage message) async {
     await ensureInitialized();
 

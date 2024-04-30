@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 // import 'package:robin_ai/data/datasources/chat_local.dart';
 import 'package:robin_ai/data/datasources/chat_network.dart';
+import 'package:robin_ai/data/model/thread_model.dart';
 import 'package:robin_ai/data/repository/chat_repository.dart';
 
 // import 'presentation/provider/chat_provider.dart';
@@ -26,6 +27,7 @@ void main() async {
 
   // Register the adapter
   Hive.registerAdapter(ChatMessageLocalAdapter());
+  Hive.registerAdapter(ThreadModelAdapter());
 
   // await Hive.openBox('chatHistory');
   // await Hive.openBox('threads');

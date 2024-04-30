@@ -6,29 +6,35 @@ part of 'thread_model.dart';
 // TypeAdapterGenerator
 // **************************************************************************
 
-class ThreadAdapter extends TypeAdapter<Thread> {
+class ThreadModelAdapter extends TypeAdapter<ThreadModel> {
   @override
-  final int typeId = 2;
+  final int typeId = 1;
 
   @override
-  Thread read(BinaryReader reader) {
+  ThreadModel read(BinaryReader reader) {
     final numOfFields = reader.readByte();
     final fields = <int, dynamic>{
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
-    return Thread(
-      id: fields[0] as String,
-      name: fields[1] as String,
+    return ThreadModel(
+      id: fields[0] as String?,
+      messages: (fields[1] as List).cast<ChatMessageLocal>(),
+      lastMessageTime: fields[2] as DateTime,
+      name: fields[3] as String,
     );
   }
 
   @override
-  void write(BinaryWriter writer, Thread obj) {
+  void write(BinaryWriter writer, ThreadModel obj) {
     writer
-      ..writeByte(2)
+      ..writeByte(4)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
+      ..write(obj.messages)
+      ..writeByte(2)
+      ..write(obj.lastMessageTime)
+      ..writeByte(3)
       ..write(obj.name);
   }
 
@@ -38,7 +44,7 @@ class ThreadAdapter extends TypeAdapter<Thread> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is ThreadAdapter &&
+      other is ThreadModelAdapter &&
           runtimeType == other.runtimeType &&
           typeId == other.typeId;
 }
