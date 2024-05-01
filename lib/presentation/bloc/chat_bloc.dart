@@ -27,7 +27,8 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   }) : super(ChatState.initial()) {
     on<SendMessageEvent>(_handleSendMessage);
     on<InitializeAppEvent>(_handleInitializeApp);
-    on<LoadThreadsEvent>(_handleLoadThreads); // Add this line
+    on<LoadThreadsEvent>(_handleLoadThreads);
+    on<LoadMessagesEvent>(_handleLoadMessages);
   }
 
   void _handleSendMessage(
@@ -108,6 +109,17 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     } catch (e) {
       // Handle error case here
       emit(state); // Keep the state unchanged in case of an error
+    }
+  }
+
+  void _handleLoadMessages(
+      LoadMessagesEvent event, Emitter<ChatState> emit) async {
+    try {
+      final threadId = event.threadId;
+      final thread = await getThreadDetailsByIdUseCase.call(threadId: threadId);
+      emit(state.copyWith(thread: thread));
+    } catch (e) {
+      rethrow;
     }
   }
 }

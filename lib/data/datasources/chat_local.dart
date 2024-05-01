@@ -52,7 +52,7 @@ class ChatLocalDataSource {
       if (_thread != null) {
         ThreadModel thread = _thread;
         // thread.messages ??= []; // initialize messages list if it's null
-        thread.messages.add(message);
+        thread.messages.insert(0, message);
         await _threadBox.put(threadId, thread);
       } else {
         await createThread(threadId,

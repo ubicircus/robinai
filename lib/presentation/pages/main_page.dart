@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
 import 'package:robin_ai/data/datasources/chat_local.dart';
 import 'package:robin_ai/data/datasources/chat_network.dart';
 import 'package:robin_ai/data/repository/chat_repository.dart';
@@ -93,11 +94,10 @@ class ChatPage extends StatelessWidget {
       drawer: Drawer(
         child: BlocBuilder<ChatBloc, ChatState>(
           builder: (context, state) {
-            print(state.threads);
             BlocProvider.of<ChatBloc>(context).add(
                 LoadThreadsEvent()); // Dispatch LoadThreadsEvent to fetch threads
             if (state.threads.isEmpty) {
-              return Center(
+              return const Center(
                 child: CircularProgressIndicator(),
               );
             } else if (state.threads.isNotEmpty) {
@@ -105,9 +105,41 @@ class ChatPage extends StatelessWidget {
                 shrinkWrap: true,
                 itemCount: state.threads.length,
                 itemBuilder: (context, index) {
-                  final thread = state.threads[index];
-                  return ListTile(
-                    title: Text(thread.name),
+                  final int reverseIndex = state.threads.length -
+                      1 -
+                      index; // Calculate reverse index
+                  final thread = state.threads[
+                      reverseIndex]; // Use reverseIndex to fetch thread
+                  final lastMessage =
+                      thread.messages.isNotEmpty ? thread.messages.first : null;
+                  return GestureDetector(
+                    onTap: () {
+                      BlocProvider.of<ChatBloc>(context).add(
+                        LoadMessagesEvent(threadId: thread.id),
+                      );
+                    },
+                    child: ListTile(
+                      title: Text(thread.name),
+                      subtitle: lastMessage != null
+                          ? Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                    lastMessage
+                                        .content, // Assuming `text` is the attribute for message content
+                                    style:
+                                        Theme.of(context).textTheme.bodyText2,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis),
+                                Text(
+                                  DateFormat('dd MMM yy').format(lastMessage
+                                      .timestamp), // Assuming `timeStamp` is a DateTime
+                                  style: Theme.of(context).textTheme.caption,
+                                ),
+                              ],
+                            )
+                          : Text("No Messages"),
+                    ),
                   );
                 },
               );
@@ -166,5 +198,17 @@ class ChatPage extends StatelessWidget {
     context
         .read<ChatBloc>()
         .add(SendMessageEvent(threadId: threadId, chatMessage: chatMessage));
+  }
+
+  ChatMessage? getLastMessage(List<ChatMessage> messages) {
+    if (messages.isEmpty) {
+      return null;
+    }
+    return messages.last;
+  }
+
+  DateTime? getLastMessageDate(List<ChatMessage> messages) {
+    final lastMessage = getLastMessage(messages);
+    return lastMessage?.timestamp;
   }
 }
