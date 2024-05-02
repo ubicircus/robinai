@@ -5,7 +5,7 @@ import 'package:robin_ai/data/datasources/chat_local.dart';
 import 'package:robin_ai/data/datasources/chat_network.dart';
 import 'package:robin_ai/data/repository/chat_repository.dart';
 import 'package:robin_ai/domain/entities/chat_message_class.dart';
-import 'package:robin_ai/domain/entities/thread_class.dart';
+
 import 'package:robin_ai/domain/usecases/threads/get_last_thread_id_usecase.dart';
 import 'package:robin_ai/domain/usecases/threads/get_thread_details_by_id_usecase.dart';
 import 'package:robin_ai/domain/usecases/threads/get_threads_list_usecase.dart';
@@ -101,47 +101,68 @@ class ChatPage extends StatelessWidget {
                 child: CircularProgressIndicator(),
               );
             } else if (state.threads.isNotEmpty) {
-              return ListView.builder(
-                shrinkWrap: true,
-                itemCount: state.threads.length,
-                itemBuilder: (context, index) {
-                  final int reverseIndex = state.threads.length -
-                      1 -
-                      index; // Calculate reverse index
-                  final thread = state.threads[
-                      reverseIndex]; // Use reverseIndex to fetch thread
-                  final lastMessage =
-                      thread.messages.isNotEmpty ? thread.messages.first : null;
-                  return GestureDetector(
-                    onTap: () {
-                      BlocProvider.of<ChatBloc>(context).add(
-                        LoadMessagesEvent(threadId: thread.id),
-                      );
-                    },
-                    child: ListTile(
-                      title: Text(thread.name),
-                      subtitle: lastMessage != null
-                          ? Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                    lastMessage
-                                        .content, // Assuming `text` is the attribute for message content
-                                    style:
-                                        Theme.of(context).textTheme.bodyText2,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis),
-                                Text(
-                                  DateFormat('dd MMM yy').format(lastMessage
-                                      .timestamp), // Assuming `timeStamp` is a DateTime
-                                  style: Theme.of(context).textTheme.caption,
-                                ),
-                              ],
-                            )
-                          : Text("No Messages"),
+              return Column(
+                children: [
+                  Expanded(
+                    child: ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: state.threads.length,
+                      itemBuilder: (context, index) {
+                        final int reverseIndex = state.threads.length -
+                            1 -
+                            index; // Calculate reverse index
+                        final thread = state.threads[
+                            reverseIndex]; // Use reverseIndex to fetch thread
+                        final lastMessage = thread.messages.isNotEmpty
+                            ? thread.messages.first
+                            : null;
+                        return GestureDetector(
+                          onTap: () {
+                            BlocProvider.of<ChatBloc>(context).add(
+                              LoadMessagesEvent(threadId: thread.id),
+                            );
+                          },
+                          child: ListTile(
+                            title: Text(thread.name),
+                            subtitle: lastMessage != null
+                                ? Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        lastMessage
+                                            .content, // Assuming `text` is the attribute for message content
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodyText2,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                      Text(
+                                        DateFormat('dd MMM yy').format(lastMessage
+                                            .timestamp), // Assuming `timeStamp` is a DateTime
+                                        style:
+                                            Theme.of(context).textTheme.caption,
+                                      ),
+                                    ],
+                                  )
+                                : Text("No Messages"),
+                          ),
+                        );
+                      },
                     ),
-                  );
-                },
+                  ),
+                  Divider(),
+                  ListTile(
+                    title: Text("Settings"),
+                    leading: Icon(Icons.settings),
+                    onTap: () {
+                      Navigator.pushNamed(context,
+                          '/settings'); // Navigate to the settings page
+                    },
+                  ),
+                  SizedBox(height: 16),
+                ],
               );
             } else {
               return Text('No threads available');

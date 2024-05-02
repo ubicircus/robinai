@@ -1,13 +1,21 @@
+import 'dart:convert';
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 // import 'package:provider/provider.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 // import 'package:robin_ai/data/datasources/chat_local.dart';
 import 'package:robin_ai/data/datasources/chat_network.dart';
+
 import 'package:robin_ai/data/model/thread_model.dart';
 import 'package:robin_ai/data/repository/chat_repository.dart';
 import 'package:robin_ai/domain/usecases/threads/get_last_thread_id_usecase.dart';
 import 'package:robin_ai/domain/usecases/threads/get_thread_details_by_id_usecase.dart';
 import 'package:robin_ai/domain/usecases/threads/get_threads_list_usecase.dart';
+import 'package:robin_ai/presentation/pages/settings_page.dart';
+import 'package:robin_ai/services/app_settings_service.dart';
+import 'package:robin_ai/services/model/service_model.dart';
 
 // import 'presentation/provider/chat_provider.dart';
 import 'presentation/pages/main_page.dart';
@@ -23,6 +31,14 @@ import 'data/datasources/chat_local.dart';
 void main() async {
   // Ensure initialized.
   WidgetsFlutterBinding.ensureInitialized();
+  final FlutterSecureStorage secureStorage = const FlutterSecureStorage();
+  var containsEncryptionKey =
+      await secureStorage.containsKey(key: 'encryptionKey');
+  if (!containsEncryptionKey) {
+    var key = Hive.generateSecureKey();
+    await secureStorage.write(
+        key: 'encryptionKey', value: base64UrlEncode(key));
+  }
 
   // Initialize Hive and open box.
   await Hive.initFlutter();
@@ -31,6 +47,7 @@ void main() async {
   Hive.registerAdapter(ChatMessageLocalAdapter());
   Hive.registerAdapter(ThreadModelAdapter());
   Hive.registerAdapter(MessageAdapter());
+  Hive.registerAdapter(ServiceModelAdapter());
 
   // await Hive.openBox('chatHistory');
   // await Hive.openBox('threads');
@@ -72,11 +89,14 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   late ChatLocalDataSource chatLocalDataSource;
+  late AppSettingsService appSettingsService;
 
   @override
   void initState() {
     super.initState();
     chatLocalDataSource = ChatLocalDataSource();
+    appSettingsService = AppSettingsService();
+    appSettingsService.initAppSettings();
     WidgetsBinding.instance.addObserver(this);
   }
 
@@ -84,6 +104,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     chatLocalDataSource.closeBox(); // Close Hive box
+    appSettingsService.closeBox();
     super.dispose();
   }
 
@@ -92,6 +113,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     if (state == AppLifecycleState.detached) {
       chatLocalDataSource
           .closeBox(); // Close Hive box when app is fully terminated
+      appSettingsService.closeBox();
     }
   }
 
@@ -110,7 +132,9 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
             ),
       ),
       home: ChatPage(),
-      routes: {},
+      routes: {
+        '/settings': (context) => SettingsPage(),
+      },
     );
   }
 }

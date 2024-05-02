@@ -1,5 +1,6 @@
 import 'package:langchain/langchain.dart' hide ChatMessage;
 import 'package:langchain_openai/langchain_openai.dart';
+import 'package:robin_ai/services/app_settings_service.dart';
 
 import '../../env/env.dart';
 import '../model/chat_message_network_model.dart';
@@ -18,8 +19,10 @@ class ChatNetworkDataSource {
 }
 
 Future<dynamic> askLLM(String input) async {
+  AppSettingsService appSettingsService = AppSettingsService();
+  appSettingsService.readApiKeys();
   final ChatOpenAI model = ChatOpenAI(
-    apiKey: Env.openAIKey,
+    apiKey: appSettingsService.getOpenAIKey(),
     model: 'gpt-3.5-turbo-0613',
   );
 
