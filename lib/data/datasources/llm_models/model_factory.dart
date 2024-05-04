@@ -11,8 +11,8 @@ class ModelFactory implements ModelFactoryInterface {
   ModelInterface getService(ServiceName serviceName) {
     if (serviceName == ServiceName.openai) {
       return OpenAIModel();
-      // } else if (serviceName == 'groq') {s
-      //   return GroqModelImplementation();
+    } else if (serviceName == ServiceName.groq) {
+      return GroqModel();
       // } else if(serviceName == 'anitrophic') {
       //   return AnitrophicModelImplementation();
     } else {

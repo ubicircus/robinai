@@ -116,7 +116,7 @@ class ChatPage extends StatelessWidget {
         ),
         actions: [
           IconButton(
-            icon: Icon(Icons.restore_page),
+            icon: Icon(Icons.restore_page_outlined, size: 36),
             onPressed: () {
               context.read<ChatBloc>().add(ClearChatEvent());
             },
@@ -140,19 +140,17 @@ class ChatPage extends StatelessWidget {
                           shrinkWrap: true,
                           itemCount: state.threads.length,
                           itemBuilder: (context, index) {
-                            final int reverseIndex = state.threads.length -
-                                1 -
-                                index; // Calculate reverse index
-                            final thread = state.threads[
-                                reverseIndex]; // Use reverseIndex to fetch thread
+                            final sortedThreads = state.threads
+                              ..sort((a, b) => b.messages.first.timestamp
+                                  .compareTo(a.messages.first.timestamp));
+                            final thread = sortedThreads[index];
                             final lastMessage = thread.messages.isNotEmpty
                                 ? thread.messages.first
                                 : null;
                             return GestureDetector(
                               onTap: () {
                                 BlocProvider.of<ChatBloc>(context).add(
-                                  LoadMessagesEvent(threadId: thread.id),
-                                );
+                                    LoadMessagesEvent(threadId: thread.id));
                               },
                               child: ListTile(
                                 title: Text(thread.name),
@@ -171,9 +169,7 @@ class ChatPage extends StatelessWidget {
                                             overflow: TextOverflow.ellipsis,
                                           ),
                                           Text(
-                                            DateFormat('dd MMM yy').format(
-                                                lastMessage
-                                                    .timestamp), // Assuming `timestamp` is a DateTime
+                                            "${DateFormat('HH:mm').format(lastMessage.timestamp)} ${DateFormat('dd MMM yy').format(lastMessage.timestamp)}",
                                             style: Theme.of(context)
                                                 .textTheme
                                                 .caption,

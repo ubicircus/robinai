@@ -65,6 +65,15 @@ class AppSettingsService {
     return null;
   }
 
+  String? getGroqKey() {
+    if (Hive.isBoxOpen(_boxName)) {
+      final box = Hive.box(_boxName);
+      final openAIRecord = box.get('groq') as ServiceModel?;
+      return openAIRecord?.apiKey;
+    }
+    return null;
+  }
+
   Future<void> updateOpenAIKey(String key) async {
     final box = await _openEncryptedBox();
     final openAIRecordExists = box.containsKey('openAI');
@@ -90,13 +99,13 @@ class AppSettingsService {
     if (groqRecordExists) {
       final groqRecord = box.get('groq') as ServiceModel;
       groqRecord.apiKey = key;
-      await groqRecord.save();
+      await box.put('groq', groqRecord);
       print("Groq API Key updated: $key");
     } else {
       final groqRecord = ServiceModel()
         ..serviceName = 'Groq'
         ..apiKey = key;
-      await groqRecord.save();
+      await box.put('groq', groqRecord);
       print("Groq API Key created: $key");
     }
   }
