@@ -1,6 +1,3 @@
-import 'package:uuid/uuid.dart';
-import '../../domain/entities/chat_message_class.dart';
-
 class ChatMessageNetworkModel {
   final String id;
   final String content;

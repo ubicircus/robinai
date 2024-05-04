@@ -1,8 +1,8 @@
-import 'package:robin_ai/data/repository/chat_repository.dart';
+import 'package:robin_ai/data/repository/thread_repository.dart';
 import 'package:robin_ai/domain/entities/thread_class.dart';
 
 class GetThreadListUseCase {
-  final ChatRepository repository;
+  final ThreadRepository repository;
 
   GetThreadListUseCase({required this.repository});
 

@@ -7,9 +7,13 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 // import 'package:robin_ai/data/datasources/chat_local.dart';
 import 'package:robin_ai/data/datasources/chat_network.dart';
+import 'package:robin_ai/data/datasources/llm_models/model_factory.dart';
 
 import 'package:robin_ai/data/model/thread_model.dart';
-import 'package:robin_ai/data/repository/chat_repository.dart';
+import 'package:robin_ai/data/repository/chat_message_repository.dart';
+import 'package:robin_ai/data/repository/models_repository.dart';
+import 'package:robin_ai/data/repository/thread_repository.dart';
+import 'package:robin_ai/domain/usecases/get_models_use_case.dart';
 import 'package:robin_ai/domain/usecases/threads/get_last_thread_id_usecase.dart';
 import 'package:robin_ai/domain/usecases/threads/get_thread_details_by_id_usecase.dart';
 import 'package:robin_ai/domain/usecases/threads/get_threads_list_usecase.dart';
@@ -53,22 +57,29 @@ void main() async {
   // await Hive.openBox('threads');
 
   // Create an instance of ChatNetworkDataSource
-  final chatNetworkDataSource = ChatNetworkDataSource();
+  final chatNetworkDataSource =
+      ChatNetworkDataSource(modelFactory: ModelFactory());
   final chatLocalDataSource = ChatLocalDataSource();
 
   // Create an instance of ChatRepository
-  final chatRepository = ChatRepository(
-    networkDataSource: chatNetworkDataSource,
+  final chatRepository = ChatMessageRepository(
+    chatNetworkDataSource: chatNetworkDataSource,
     chatLocalDataSource: chatLocalDataSource,
   );
+  final threadRepository =
+      ThreadRepository(chatLocalDataSource: chatLocalDataSource);
+  final modelsRepository =
+      ModelsRepository(chatNetworkDataSource: chatNetworkDataSource);
 
   // Create an instance of SendMessageUseCase
   final sendMessageUseCase = SendMessageUseCase(chatRepository: chatRepository);
   final getLastThreadIdUseCase =
-      GetLastThreadIdUseCase(repository: chatRepository);
+      GetLastThreadIdUseCase(repository: threadRepository);
   final getThreadDetailsByIdUseCase =
-      GetThreadDetailsByIdUseCase(chatRepository: chatRepository);
-  final getThreadListUseCase = GetThreadListUseCase(repository: chatRepository);
+      GetThreadDetailsByIdUseCase(threadRepository: threadRepository);
+  final getThreadListUseCase =
+      GetThreadListUseCase(repository: threadRepository);
+  final getModelsUseCase = GetModelsUseCase(modelsRepository: modelsRepository);
 
   runApp(BlocProvider<ChatBloc>(
     create: (context) => ChatBloc(
@@ -77,6 +88,7 @@ void main() async {
       getLastThreadIdUseCase: getLastThreadIdUseCase,
       getThreadDetailsByIdUseCase: getThreadDetailsByIdUseCase,
       getThreadListUseCase: getThreadListUseCase,
+      getModelsUseCase: getModelsUseCase,
     ),
     child: MyApp(),
   ));

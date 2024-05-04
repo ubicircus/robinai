@@ -27,6 +27,10 @@ class ErrorMessages {
       "Failed to fetch data from local storage.";
   static const String closeDataLocallyFailed = "Failed to close data resource.";
 
+  static const String fetchThreadsFailed = "Failed to fetch threads";
+  static const String fetchThreadDetailsFailed =
+      "Failed to fetch thread details";
+
   // Add getters for the error messages
   static String get sendAndSaveFailedErrorMessage => sendAndSaveFailed;
   static String get fetchFailedErrorMessage => fetchFailed;

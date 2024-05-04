@@ -1,5 +1,5 @@
 import '/domain/entities/chat_message_class.dart';
-import '/data/repository/chat_repository.dart';
+import '../../../data/repository/chat_message_repository.dart';
 import '../../../core/error_messages.dart';
 
 //this file will be used later one when dealing with local storage

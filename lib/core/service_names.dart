@@ -1,0 +1,4 @@
+enum ServiceName {
+  openai,
+  groq,
+}

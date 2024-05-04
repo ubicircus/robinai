@@ -1,7 +1,9 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:robin_ai/data/repository/chat_repository.dart';
+import 'package:robin_ai/core/service_names.dart';
+import 'package:robin_ai/data/repository/chat_message_repository.dart';
 import 'package:robin_ai/domain/entities/chat_message_class.dart';
 import 'package:robin_ai/domain/entities/thread_class.dart';
+import 'package:robin_ai/domain/usecases/get_models_use_case.dart';
 import 'package:robin_ai/domain/usecases/messages/send_message.dart';
 import 'package:robin_ai/domain/usecases/threads/get_last_thread_id_usecase.dart';
 import 'package:robin_ai/domain/usecases/threads/get_thread_details_by_id_usecase.dart';
@@ -13,10 +15,11 @@ part 'chat_state.dart';
 
 class ChatBloc extends Bloc<ChatEvent, ChatState> {
   final SendMessageUseCase sendMessageUseCase;
-  final ChatRepository chatRepository;
+  final ChatMessageRepository chatRepository;
   final GetLastThreadIdUseCase getLastThreadIdUseCase;
   final GetThreadDetailsByIdUseCase getThreadDetailsByIdUseCase;
   final GetThreadListUseCase getThreadListUseCase;
+  final GetModelsUseCase getModelsUseCase;
 
   ChatBloc({
     required this.sendMessageUseCase,
@@ -24,11 +27,16 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     required this.getLastThreadIdUseCase,
     required this.getThreadDetailsByIdUseCase,
     required this.getThreadListUseCase,
+    required this.getModelsUseCase,
   }) : super(ChatState.initial()) {
     on<SendMessageEvent>(_handleSendMessage);
     on<InitializeAppEvent>(_handleInitializeApp);
     on<LoadThreadsEvent>(_handleLoadThreads);
     on<LoadMessagesEvent>(_handleLoadMessages);
+    on<ClearChatEvent>(_clearChatWindow);
+    on<SelectServiceProviderEvent>(_handleSelectServiceProvider);
+    on<SelectModelEvent>(_handleSelectModel);
+    on<GetModelsEvent>(_getModels);
   }
 
   void _handleSendMessage(
@@ -55,8 +63,13 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       emit(state.copyWith(thread: updatedThread));
 
       // Send the message
-      final responseMessage =
-          await sendMessageUseCase.call(threadId, userMessage);
+      final responseMessage = await sendMessageUseCase.call(
+        threadId,
+        userMessage,
+        state.serviceName,
+        state.modelName,
+        updatedThread.messages,
+      );
 
       // Add the response message to the thread
       updatedThread.messages.insert(0, responseMessage);
@@ -82,19 +95,21 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   void _handleInitializeApp(
       InitializeAppEvent event, Emitter<ChatState> emit) async {
     try {
-      final lastThreadId = await getLastThreadIdUseCase.call();
-      print('Last Thread ID: $lastThreadId');
+      // final lastThreadId = await getLastThreadIdUseCase.call();
+      // print('Last Thread ID: $lastThreadId');
 
-      final lastThread =
-          await getThreadDetailsByIdUseCase.call(threadId: lastThreadId);
-      print('Last Thread Details: $lastThread');
+      // final lastThread =
+      //     await getThreadDetailsByIdUseCase.call(threadId: lastThreadId);
+      // print('Last Thread Details: $lastThread');
 
-      final updatedThread = Thread(
-          id: lastThread.id,
-          messages: lastThread.messages,
-          name: lastThread.name);
+      // final updatedThread = Thread(
+      //     id: lastThread.id,
+      //     messages: lastThread.messages,
+      //     name: lastThread.name);
 
-      emit(state.copyWith(thread: updatedThread)); // Update with current thread
+      // emit(state.copyWith(thread: updatedThread)); // Update with current thread
+      final modelsAvailable = await getModelsUseCase.call(state.serviceName);
+      emit(state.copyWith(modelsAvailable: modelsAvailable));
     } catch (e) {
       // Handle error during app initialization
       rethrow;
@@ -118,6 +133,43 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       final threadId = event.threadId;
       final thread = await getThreadDetailsByIdUseCase.call(threadId: threadId);
       emit(state.copyWith(thread: thread));
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  void _clearChatWindow(ClearChatEvent event, Emitter<ChatState> emit) async {
+    emit(state.copyWith(
+      thread: Thread(id: Uuid().v4(), name: "New Chat", messages: []),
+    ));
+  }
+
+  void _handleSelectServiceProvider(
+      SelectServiceProviderEvent event, Emitter<ChatState> emit) async {
+    final serviceName = event.serviceName;
+    if (serviceName != state.serviceName) {
+      try {
+        emit(state.copyWith(serviceName: serviceName));
+        final modelsAvailable = await getModelsUseCase.call(state.serviceName);
+        emit(state.copyWith(modelsAvailable: modelsAvailable));
+        emit(state.copyWith(modelName: modelsAvailable.first));
+      } catch (e) {
+        rethrow;
+      }
+    }
+  }
+
+  void _handleSelectModel(SelectModelEvent event, Emitter<ChatState> emit) {
+    final modelName = event.modelName;
+    emit(state.copyWith(modelName: modelName));
+  }
+
+  void _getModels(GetModelsEvent event, Emitter<ChatState> emit) async {
+    final ServiceName serviceName = event.serviceName;
+
+    try {
+      final modelsAvailable = await getModelsUseCase.call(serviceName);
+      emit(state.copyWith(modelsAvailable: modelsAvailable));
     } catch (e) {
       rethrow;
     }

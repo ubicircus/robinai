@@ -2,7 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 import '../../lib/domain/usecases/messages/send_message.dart';
 import '../../lib/domain/entities/chat_message_class.dart';
-import '../../lib/data/repository/chat_repository.dart';
+import '../../lib/data/repository/chat_message_repository.dart';
 
 class MockChatRepository extends Mock implements ChatRepository {}
 

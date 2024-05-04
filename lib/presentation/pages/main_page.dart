@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:robin_ai/data/datasources/ModelInterface.dart';
 import 'package:robin_ai/data/datasources/chat_local.dart';
 import 'package:robin_ai/data/datasources/chat_network.dart';
-import 'package:robin_ai/data/repository/chat_repository.dart';
+import 'package:robin_ai/data/datasources/llm_models/model_factory.dart';
+import 'package:robin_ai/data/repository/chat_message_repository.dart';
+import 'package:robin_ai/data/repository/models_repository.dart';
+import 'package:robin_ai/data/repository/thread_repository.dart';
 import 'package:robin_ai/domain/entities/chat_message_class.dart';
+import 'package:robin_ai/domain/usecases/get_models_use_case.dart';
 
 import 'package:robin_ai/domain/usecases/threads/get_last_thread_id_usecase.dart';
 import 'package:robin_ai/domain/usecases/threads/get_thread_details_by_id_usecase.dart';
@@ -13,6 +18,8 @@ import 'package:robin_ai/presentation/bloc/chat_bloc.dart';
 
 import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
 import 'package:flutter_chat_ui/flutter_chat_ui.dart' hide ChatState;
+import 'package:robin_ai/presentation/widgets/models_popupmenu.dart';
+import 'package:robin_ai/presentation/widgets/services_popumenu.dart';
 import 'package:uuid/uuid.dart';
 import 'package:robin_ai/domain/usecases/messages/send_message.dart';
 
@@ -30,6 +37,7 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   @override
   void initState() {
+    BlocProvider.of<ChatBloc>(context).add(InitializeAppEvent());
     super.initState();
   }
 
@@ -42,30 +50,35 @@ class _MyAppState extends State<MyApp> {
           BlocProvider<ChatBloc>(
             create: (_) => ChatBloc(
               sendMessageUseCase: SendMessageUseCase(
-                  chatRepository: ChatRepository(
-                      networkDataSource: ChatNetworkDataSource(),
+                  chatRepository: ChatMessageRepository(
+                      chatNetworkDataSource:
+                          ChatNetworkDataSource(modelFactory: ModelFactory()),
                       chatLocalDataSource: ChatLocalDataSource())),
-              chatRepository: ChatRepository(
-                  networkDataSource: ChatNetworkDataSource(),
+              chatRepository: ChatMessageRepository(
+                  chatNetworkDataSource:
+                      ChatNetworkDataSource(modelFactory: ModelFactory()),
                   chatLocalDataSource: ChatLocalDataSource()),
               getLastThreadIdUseCase: GetLastThreadIdUseCase(
-                repository: ChatRepository(
-                  networkDataSource: ChatNetworkDataSource(),
+                repository: ThreadRepository(
                   chatLocalDataSource: ChatLocalDataSource(),
                 ),
               ),
               getThreadDetailsByIdUseCase: GetThreadDetailsByIdUseCase(
-                chatRepository: ChatRepository(
-                  networkDataSource: ChatNetworkDataSource(),
+                threadRepository: ThreadRepository(
                   chatLocalDataSource: ChatLocalDataSource(),
                 ),
               ),
               getThreadListUseCase: GetThreadListUseCase(
-                repository: ChatRepository(
-                  networkDataSource: ChatNetworkDataSource(),
+                repository: ThreadRepository(
                   chatLocalDataSource: ChatLocalDataSource(),
                 ),
               ),
+              getModelsUseCase: GetModelsUseCase(
+                  modelsRepository: ModelsRepository(
+                chatNetworkDataSource: ChatNetworkDataSource(
+                  modelFactory: ModelFactory(),
+                ),
+              )),
             ),
           ),
         ],
@@ -89,84 +102,102 @@ class ChatPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Chat Page'),
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // Text(
+            //   context.watch<ChatBloc>().state.serviceName,
+            //   style: TextStyle(fontSize: 16),
+            // ),
+            ServicesPopupMenu(),
+            const SizedBox(width: 25),
+            ModelsPopupMenu(),
+          ],
+        ),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.restore_page),
+            onPressed: () {
+              context.read<ChatBloc>().add(ClearChatEvent());
+            },
+          )
+        ],
       ),
       drawer: Drawer(
         child: BlocBuilder<ChatBloc, ChatState>(
           builder: (context, state) {
             BlocProvider.of<ChatBloc>(context).add(
                 LoadThreadsEvent()); // Dispatch LoadThreadsEvent to fetch threads
-            if (state.threads.isEmpty) {
-              return const Center(
-                child: CircularProgressIndicator(),
-              );
-            } else if (state.threads.isNotEmpty) {
-              return Column(
-                children: [
-                  Expanded(
-                    child: ListView.builder(
-                      shrinkWrap: true,
-                      itemCount: state.threads.length,
-                      itemBuilder: (context, index) {
-                        final int reverseIndex = state.threads.length -
-                            1 -
-                            index; // Calculate reverse index
-                        final thread = state.threads[
-                            reverseIndex]; // Use reverseIndex to fetch thread
-                        final lastMessage = thread.messages.isNotEmpty
-                            ? thread.messages.first
-                            : null;
-                        return GestureDetector(
-                          onTap: () {
-                            BlocProvider.of<ChatBloc>(context).add(
-                              LoadMessagesEvent(threadId: thread.id),
+            return Column(
+              children: [
+                Expanded(
+                  child: state.threads.isEmpty
+                      ? Center(
+                          child: Text(
+                              "No threads"), // Show "No threads" text instead of CircularProgressIndicator
+                        )
+                      : ListView.builder(
+                          shrinkWrap: true,
+                          itemCount: state.threads.length,
+                          itemBuilder: (context, index) {
+                            final int reverseIndex = state.threads.length -
+                                1 -
+                                index; // Calculate reverse index
+                            final thread = state.threads[
+                                reverseIndex]; // Use reverseIndex to fetch thread
+                            final lastMessage = thread.messages.isNotEmpty
+                                ? thread.messages.first
+                                : null;
+                            return GestureDetector(
+                              onTap: () {
+                                BlocProvider.of<ChatBloc>(context).add(
+                                  LoadMessagesEvent(threadId: thread.id),
+                                );
+                              },
+                              child: ListTile(
+                                title: Text(thread.name),
+                                subtitle: lastMessage != null
+                                    ? Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            lastMessage
+                                                .content, // Assuming `content` is the attribute for message content
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .bodyText2,
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                          Text(
+                                            DateFormat('dd MMM yy').format(
+                                                lastMessage
+                                                    .timestamp), // Assuming `timestamp` is a DateTime
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .caption,
+                                          ),
+                                        ],
+                                      )
+                                    : Text("No Messages"),
+                              ),
                             );
                           },
-                          child: ListTile(
-                            title: Text(thread.name),
-                            subtitle: lastMessage != null
-                                ? Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        lastMessage
-                                            .content, // Assuming `text` is the attribute for message content
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .bodyText2,
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                      Text(
-                                        DateFormat('dd MMM yy').format(lastMessage
-                                            .timestamp), // Assuming `timeStamp` is a DateTime
-                                        style:
-                                            Theme.of(context).textTheme.caption,
-                                      ),
-                                    ],
-                                  )
-                                : Text("No Messages"),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                  Divider(),
-                  ListTile(
-                    title: Text("Settings"),
-                    leading: Icon(Icons.settings),
-                    onTap: () {
-                      Navigator.pushNamed(context,
-                          '/settings'); // Navigate to the settings page
-                    },
-                  ),
-                  SizedBox(height: 16),
-                ],
-              );
-            } else {
-              return Text('No threads available');
-            }
+                        ),
+                ),
+                Divider(),
+                ListTile(
+                  title: Text("Settings"),
+                  leading: Icon(Icons.settings),
+                  onTap: () {
+                    Navigator.pushNamed(
+                        context, '/settings'); // Navigate to the settings page
+                  },
+                ),
+                SizedBox(height: 16),
+              ],
+            );
           },
         ),
       ),

@@ -19,6 +19,24 @@ class SendMessageEvent extends ChatEvent {
 
 class LoadThreadsEvent extends ChatEvent {}
 
+class ClearChatEvent extends ChatEvent {}
+
+class SelectServiceProviderEvent extends ChatEvent {
+  final ServiceName serviceName;
+
+  SelectServiceProviderEvent({required this.serviceName});
+}
+
+class SelectModelEvent extends ChatEvent {
+  final String modelName;
+
+  SelectModelEvent({required this.modelName});
+}
+
+class GetModelsEvent extends ChatEvent {
+  final ServiceName serviceName;
+  GetModelsEvent({required this.serviceName});
+}
 // chat_state.dart
 
 // class ChatState {
