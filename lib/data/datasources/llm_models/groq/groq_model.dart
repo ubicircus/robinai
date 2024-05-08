@@ -57,7 +57,6 @@ class GroqModel implements ModelInterface {
       'stop': null,
       'stream': false,
     };
-    print(jsonData);
 
     // Make a POST request to the Groq API
     final Uri url =

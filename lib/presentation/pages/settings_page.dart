@@ -86,6 +86,9 @@ class _ServiceApiKeysPageState extends State<ServiceApiKeysPage> {
 
   void _updateOpenAIKey(String value) {
     _appSettingsService.updateOpenAIKey(value);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('OpenAI API key updated')),
+    );
   }
 
   void _updateGroqKey(String value) {
@@ -113,6 +116,11 @@ class _ServiceApiKeysPageState extends State<ServiceApiKeysPage> {
               controller: _openAIController,
               decoration: InputDecoration(
                 hintText: 'Enter OpenAI API Key',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(30.0),
+                ),
+                filled: true,
+                fillColor: Colors.teal.shade50,
               ),
               onChanged: _updateOpenAIKey,
               // Remove the next two lines to display the text normally but obscured
@@ -126,6 +134,11 @@ class _ServiceApiKeysPageState extends State<ServiceApiKeysPage> {
               controller: _groqController,
               decoration: InputDecoration(
                 hintText: 'Enter Groq API Key',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(30.0),
+                ),
+                filled: true,
+                fillColor: Colors.teal.shade50,
               ),
               onChanged: _updateGroqKey,
               // Remove the next two lines to display the text normally but obscured
