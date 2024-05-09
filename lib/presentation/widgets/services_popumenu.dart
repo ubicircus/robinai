@@ -69,6 +69,14 @@ void _showCupertinoServicesMenu(BuildContext context) {
             Navigator.pop(context);
           },
         ),
+        CupertinoActionSheetAction(
+          child: const Text('Dyrektywa'),
+          onPressed: () {
+            context.read<ChatBloc>().add(
+                SelectServiceProviderEvent(serviceName: ServiceName.dyrektywa));
+            Navigator.pop(context);
+          },
+        ),
       ],
       cancelButton: CupertinoActionSheetAction(
         child: const Text('Cancel'),

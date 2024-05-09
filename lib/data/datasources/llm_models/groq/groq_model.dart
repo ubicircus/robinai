@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:robin_ai/core/service_names.dart';
-import 'package:robin_ai/data/datasources/ModelInterface.dart';
+import 'package:robin_ai/data/datasources/llm_models/ModelInterface.dart';
 import 'package:robin_ai/data/datasources/llm_models/groq/groq_mapper.dart';
 import 'package:robin_ai/data/model/groq_message_model.dart';
 import 'package:robin_ai/domain/entities/chat_message_class.dart';
@@ -16,8 +16,8 @@ class GroqModel implements ModelInterface {
     required String systemPrompt,
   }) async {
     AppSettingsService appSettingsService = AppSettingsService();
-
-    String? apiKey = appSettingsService.getGroqKey() ?? '';
+    Map<String, String> apiKeys = await appSettingsService.readApiKeys();
+    String? apiKey = apiKeys[ServiceName.groq.name] ?? '';
 
     // Map conversation history to the required format
     List<GroqChatMessageModel> conversationHistoryMapped =

@@ -1,8 +1,9 @@
 import 'dart:developer';
 
 import 'package:robin_ai/core/service_names.dart';
-import 'package:robin_ai/data/datasources/ModelInterface.dart';
+import 'package:robin_ai/data/datasources/llm_models/ModelInterface.dart';
 import 'package:robin_ai/data/datasources/llm_models/ModelFactoryInterface.dart';
+import 'package:robin_ai/data/datasources/llm_models/dyrektywa/machinery_directive_model.dart';
 import 'package:robin_ai/data/datasources/llm_models/groq/groq_model.dart';
 import 'package:robin_ai/data/datasources/llm_models/openai/openai_model.dart';
 
@@ -15,6 +16,8 @@ class ModelFactory implements ModelFactoryInterface {
       return GroqModel();
       // } else if(serviceName == 'anitrophic') {
       //   return AnitrophicModelImplementation();
+    } else if (serviceName == ServiceName.dyrektywa) {
+      return DyrektywaModel();
     } else {
       throw Exception('Unsupported service name: $serviceName');
     }
@@ -26,6 +29,8 @@ class ModelFactory implements ModelFactoryInterface {
       return OpenAIModel();
     } else if (serviceName == ServiceName.groq) {
       return GroqModel();
+    } else if (serviceName == ServiceName.dyrektywa) {
+      return DyrektywaModel();
     } else {
       throw Exception('Unsupported service name: $serviceName');
     }

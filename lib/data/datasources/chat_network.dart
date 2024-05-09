@@ -3,7 +3,7 @@ import 'dart:developer';
 import 'package:robin_ai/core/service_names.dart';
 import 'package:robin_ai/data/datasources/llm_models/ModelFactoryInterface.dart';
 import 'package:robin_ai/data/model/chat_message_network_model.dart';
-import 'package:robin_ai/data/datasources/ModelInterface.dart';
+import 'package:robin_ai/data/datasources/llm_models/ModelInterface.dart';
 import 'package:robin_ai/domain/entities/chat_message_class.dart';
 
 class ChatNetworkDataSource {

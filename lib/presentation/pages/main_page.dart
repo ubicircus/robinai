@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
-import 'package:robin_ai/data/datasources/ModelInterface.dart';
+import 'package:robin_ai/data/datasources/llm_models/ModelInterface.dart';
 import 'package:robin_ai/data/datasources/chat_local.dart';
 import 'package:robin_ai/data/datasources/chat_network.dart';
 import 'package:robin_ai/data/datasources/llm_models/model_factory.dart';
@@ -102,7 +102,8 @@ class ChatPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Row(
+        toolbarHeight: 100,
+        title: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             // Text(
@@ -110,7 +111,7 @@ class ChatPage extends StatelessWidget {
             //   style: TextStyle(fontSize: 16),
             // ),
             ServicesPopupMenu(),
-            const SizedBox(width: 25),
+            const SizedBox(height: 15),
             ModelsPopupMenu(),
           ],
         ),
