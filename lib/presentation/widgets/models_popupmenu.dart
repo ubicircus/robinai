@@ -14,7 +14,9 @@ class ModelsPopupMenu extends StatelessWidget {
           Text(
             state.modelName.isEmpty ? 'Select Model' : state.modelName,
             style: const TextStyle(fontSize: 12),
+            overflow: TextOverflow.fade,
           ),
+
           SizedBox(width: 5), // Space between text and icon
           Icon(
             CupertinoIcons.right_chevron,

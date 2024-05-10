@@ -10,6 +10,10 @@ class AppConstants {
       logoAsset: 'assets/images/groq-logo.png',
       caption: 'Groq',
     ),
+    ServiceName.dyrektywa: ServiceMetadata(
+      logoAsset: 'assets/images/ce-logo.png',
+      caption: 'Dyrektywa',
+    ),
   };
 }
 

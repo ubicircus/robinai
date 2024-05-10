@@ -20,7 +20,7 @@ class ServicesPopupMenu extends StatelessWidget {
             Flexible(
               child: Container(
                 width: 80, // adjust the width
-                // height: 20, // adjust the height
+                height: 30, // adjust the height
                 child: Image.asset(serviceMetadata.logoAsset),
               ),
             ),
@@ -66,6 +66,14 @@ void _showCupertinoServicesMenu(BuildContext context) {
             context
                 .read<ChatBloc>()
                 .add(SelectServiceProviderEvent(serviceName: ServiceName.groq));
+            Navigator.pop(context);
+          },
+        ),
+        CupertinoActionSheetAction(
+          child: const Text('Dyrektywa'),
+          onPressed: () {
+            context.read<ChatBloc>().add(
+                SelectServiceProviderEvent(serviceName: ServiceName.dyrektywa));
             Navigator.pop(context);
           },
         ),

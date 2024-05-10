@@ -1,6 +1,6 @@
 import 'package:dart_openai/dart_openai.dart';
 import 'package:robin_ai/core/service_names.dart';
-import 'package:robin_ai/data/datasources/ModelInterface.dart';
+import 'package:robin_ai/data/datasources/llm_models/ModelInterface.dart';
 import 'package:robin_ai/data/datasources/llm_models/openai/openai_mapper.dart';
 import 'package:robin_ai/domain/entities/chat_message_class.dart';
 import 'package:robin_ai/services/app_settings_service.dart';
@@ -14,8 +14,9 @@ class OpenAIModel implements ModelInterface {
     required String systemPrompt,
   }) async {
     AppSettingsService appSettingsService = AppSettingsService();
+    Map<String, String> apiKeys = await appSettingsService.readApiKeys();
 
-    OpenAI.apiKey = appSettingsService.getOpenAIKey() ?? '';
+    OpenAI.apiKey = apiKeys[ServiceName.openai.name] ?? '';
     final openai = OpenAI.instance;
 
     // Map conversation history to the required format
@@ -73,8 +74,8 @@ class OpenAIModel implements ModelInterface {
   @override
   Future<List<String>> getModels({required ServiceName serviceName}) async {
     AppSettingsService appSettingsService = AppSettingsService();
-
-    OpenAI.apiKey = appSettingsService.getOpenAIKey() ?? '';
+    Map<String, String> apiKeys = await appSettingsService.readApiKeys();
+    OpenAI.apiKey = apiKeys[ServiceName.openai.name] ?? '';
     final openai = OpenAI.instance;
     try {
       List<OpenAIModelModel> models = await openai.model.list();

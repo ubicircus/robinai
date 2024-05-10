@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
-import 'package:robin_ai/data/datasources/ModelInterface.dart';
+import 'package:robin_ai/data/datasources/llm_models/ModelInterface.dart';
 import 'package:robin_ai/data/datasources/chat_local.dart';
 import 'package:robin_ai/data/datasources/chat_network.dart';
 import 'package:robin_ai/data/datasources/llm_models/model_factory.dart';
@@ -102,15 +102,16 @@ class ChatPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
+        toolbarHeight: 100,
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             // Text(
             //   context.watch<ChatBloc>().state.serviceName,
             //   style: TextStyle(fontSize: 16),
             // ),
             ServicesPopupMenu(),
-            const SizedBox(width: 25),
+            const SizedBox(height: 15),
             ModelsPopupMenu(),
           ],
         ),
@@ -206,7 +207,21 @@ class ChatPage extends StatelessWidget {
             showUserAvatars: true,
             showUserNames: true,
             user: _user,
-            theme: DefaultChatTheme(),
+            theme: DefaultChatTheme(
+              primaryColor: Colors.teal,
+              backgroundColor: Colors.white,
+              inputBackgroundColor: Colors.teal.shade100,
+              inputTextColor: Colors.black,
+              dateDividerTextStyle: TextStyle(
+                color: Colors.teal.shade600,
+              ),
+              receivedMessageBodyTextStyle: TextStyle(
+                color: Colors.black,
+              ),
+              sentMessageBodyTextStyle: TextStyle(
+                color: Colors.white,
+              ),
+            ),
           );
         },
       ),

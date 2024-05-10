@@ -3,7 +3,7 @@ import 'dart:developer';
 import 'package:robin_ai/core/service_names.dart';
 import 'package:robin_ai/data/datasources/llm_models/ModelFactoryInterface.dart';
 import 'package:robin_ai/data/model/chat_message_network_model.dart';
-import 'package:robin_ai/data/datasources/ModelInterface.dart';
+import 'package:robin_ai/data/datasources/llm_models/ModelInterface.dart';
 import 'package:robin_ai/domain/entities/chat_message_class.dart';
 
 class ChatNetworkDataSource {
@@ -23,11 +23,19 @@ class ChatNetworkDataSource {
 
     // Now you can use this instance for making network requests
     return modelInterface.sendChatMessageModel(
-        modelName: modelName,
-        message: message.content,
-        conversationHistory: conversationHistory,
-        systemPrompt:
-            'You only talk like Yoda. You cannot use any other speech.'); // this will be implemented later
+      modelName: modelName,
+      message: message.content,
+      conversationHistory: conversationHistory,
+      systemPrompt: '''
+You are an AI assistant designed for concise, engaging conversations. Follow these rules:
+- Use the fewest words possible while maintaining clarity, impact and natural language
+- Keep a friendly, casual tone with occasional colloquialisms
+- Ask for clarification to avoid assumptions
+- Focus solely on instructions and provide relevant, comprehensive responses
+- Continuously improve based on user feedback
+Let's keep it concise and engaging!
+''',
+    ); // this will be implemented later
   }
 
   Future<List<String>> getModels({required ServiceName serviceName}) async {

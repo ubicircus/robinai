@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:robin_ai/core/service_names.dart';
 import 'package:robin_ai/services/app_settings_service.dart';
 
 // Model class for settings options
@@ -57,6 +58,7 @@ class ServiceApiKeysPage extends StatefulWidget {
 class _ServiceApiKeysPageState extends State<ServiceApiKeysPage> {
   TextEditingController _openAIController = TextEditingController();
   TextEditingController _groqController = TextEditingController();
+  TextEditingController _dyrektywaController = TextEditingController();
   AppSettingsService _appSettingsService = AppSettingsService();
 
   @override
@@ -69,8 +71,12 @@ class _ServiceApiKeysPageState extends State<ServiceApiKeysPage> {
     // Assuming readApiKeys returns a Map<String, String> with the keys
     var keys = await _appSettingsService.readApiKeys();
     setState(() {
-      _openAIController.text = obscureApiKey(keys['openAI'] as String);
-      _groqController.text = obscureApiKey(keys['groq'] as String);
+      _openAIController.text =
+          obscureApiKey(keys[ServiceName.openai.name] as String);
+      _groqController.text =
+          obscureApiKey(keys[ServiceName.groq.name] as String);
+      _dyrektywaController.text =
+          obscureApiKey(keys[ServiceName.dyrektywa.name] as String);
     });
   }
 
@@ -85,14 +91,15 @@ class _ServiceApiKeysPageState extends State<ServiceApiKeysPage> {
   }
 
   void _updateOpenAIKey(String value) {
-    _appSettingsService.updateOpenAIKey(value);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('OpenAI API key updated')),
-    );
+    _appSettingsService.updateApiKey(ServiceName.openai.name, value);
   }
 
   void _updateGroqKey(String value) {
-    _appSettingsService.updateGroqKey(value);
+    _appSettingsService.updateApiKey(ServiceName.groq.name, value);
+  }
+
+  void _updateDyrektywaKey(String value) {
+    _appSettingsService.updateApiKey(ServiceName.dyrektywa.name, value);
   }
 
   @override
@@ -141,6 +148,24 @@ class _ServiceApiKeysPageState extends State<ServiceApiKeysPage> {
                 fillColor: Colors.teal.shade50,
               ),
               onChanged: _updateGroqKey,
+              // Remove the next two lines to display the text normally but obscured
+              // obscureText: true,
+              // obscuringCharacter: '*',
+            ),
+          ),
+          ListTile(
+            title: Text('Dyrektywa'),
+            subtitle: TextFormField(
+              controller: _dyrektywaController,
+              decoration: InputDecoration(
+                hintText: 'Enter Dyrektywa API Key',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(30.0),
+                ),
+                filled: true,
+                fillColor: Colors.teal.shade50,
+              ),
+              onChanged: _updateDyrektywaKey,
               // Remove the next two lines to display the text normally but obscured
               // obscureText: true,
               // obscuringCharacter: '*',
