@@ -75,12 +75,25 @@ class GroqModel implements ModelInterface {
     if (response.statusCode == 200) {
       final responseData = jsonDecode(response.body);
       final completedMessage = responseData['choices'][0]['message']['content'];
+      print(completedMessage);
 
-      return completedMessage ?? '';
+      String correctedString = convertLatin1ToUtf8(completedMessage);
+
+      return correctedString;
     } else {
       throw Exception(
           'Failed to send chat message: ${response.statusCode} - ${response.body}');
     }
+  }
+
+  String convertLatin1ToUtf8(String inStr) {
+    // Decode from Latin-1
+    List<int> latin1Bytes = latin1.encode(inStr);
+
+    // Properly decode to UTF-8
+    String utf8String = utf8.decode(latin1Bytes);
+
+    return utf8String;
   }
 
   @override
