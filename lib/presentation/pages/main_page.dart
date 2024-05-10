@@ -207,7 +207,21 @@ class ChatPage extends StatelessWidget {
             showUserAvatars: true,
             showUserNames: true,
             user: _user,
-            theme: DefaultChatTheme(),
+            theme: DefaultChatTheme(
+              primaryColor: Colors.teal,
+              backgroundColor: Colors.white,
+              inputBackgroundColor: Colors.teal.shade100,
+              inputTextColor: Colors.black,
+              dateDividerTextStyle: TextStyle(
+                color: Colors.teal.shade600,
+              ),
+              receivedMessageBodyTextStyle: TextStyle(
+                color: Colors.black,
+              ),
+              sentMessageBodyTextStyle: TextStyle(
+                color: Colors.white,
+              ),
+            ),
           );
         },
       ),
