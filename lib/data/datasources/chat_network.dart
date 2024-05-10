@@ -1,71 +1,70 @@
-import 'package:langchain/langchain.dart';
-import 'package:langchain_openai/langchain_openai.dart';
-import 'package:uuid/uuid.dart';
+import 'dart:developer';
 
-import '../../env/env.dart';
-import '../../domain/entities/chat_message_class.dart';
+import 'package:robin_ai/core/service_names.dart';
+import 'package:robin_ai/data/datasources/llm_models/ModelFactoryInterface.dart';
+import 'package:robin_ai/data/model/chat_message_network_model.dart';
+import 'package:robin_ai/data/datasources/ModelInterface.dart';
+import 'package:robin_ai/domain/entities/chat_message_class.dart';
 
 class ChatNetworkDataSource {
-  var uuid = Uuid();
+  final ModelFactoryInterface _modelFactory;
+
+  ChatNetworkDataSource({required ModelFactoryInterface modelFactory})
+      : _modelFactory = modelFactory;
 
   // POST request to send a message
-  Future<ChatMessageClass> sendChatMessage(ChatMessageClass message) async {
-    final response = await askLLM(message.content);
+  Future<String> sendChatMessage(
+      ChatMessageNetworkModel message,
+      ServiceName serviceName,
+      String modelName,
+      List<ChatMessage> conversationHistory) async {
+    // Get the modelInterface for the specific service
+    final ModelInterface modelInterface = _modelFactory.getService(serviceName);
 
-    // return the correct type - ChatMessage
-    return ChatMessageClass(
-        id: uuid.v1(),
-        content: response,
-        isUserMessage: false,
-        timestamp: DateTime.now());
+    // Now you can use this instance for making network requests
+    return modelInterface.sendChatMessageModel(
+        modelName: modelName,
+        message: message.content,
+        conversationHistory: conversationHistory,
+        systemPrompt:
+            'You only talk like Yoda. You cannot use any other speech.'); // this will be implemented later
+  }
+
+  Future<List<String>> getModels({required ServiceName serviceName}) async {
+    final ModelInterface modelInterface = _modelFactory.getModels(serviceName);
+
+    return modelInterface.getModels(serviceName: serviceName);
   }
 }
 
-Future<dynamic> askLLM(String input) async {
-  final model = ChatOpenAI(
-    apiKey: Env.openAIKey,
-    model: 'gpt-3.5-turbo-0613',
-  );
-
-  //the system prompt should be injected here according to the ceontext or the history
-  final promptTemplate = SystemChatMessagePromptTemplate.fromTemplate(
-      '''You are a helpful assistant.
-''');
-  final humanTemplate = HumanChatMessagePromptTemplate.fromTemplate('{text}');
-  final chatPrompt = ChatPromptTemplate.fromPromptMessages([
-    promptTemplate,
-    humanTemplate,
-  ]);
-
-  const stringOutputParser = StringOutputParser();
-  final chain = Runnable.fromList([chatPrompt, model, stringOutputParser]);
-
-  var result = await chain.invoke({'text': input});
-  //utf8.decode(taskOutput.runes.toList()),
-
-  return result;
-}
+//there should be more options, messages list, service provider, model, etc. and there should be default values from the shared preferences
 
 
+//OLD WAY:
+// Future<dynamic> askLLM(String input) async {
+//   AppSettingsService appSettingsService = AppSettingsService();
+//   appSettingsService.readApiKeys();
+//   final ChatOpenAI model = ChatOpenAI(
+//     apiKey: appSettingsService.getOpenAIKey(),
+//     model: 'gpt-3.5-turbo-0613',
+//   );
 
-  // // GET request to fetch all messages
-  // Future<List<ChatMessage>> fetchAllMessages() async {
-  //   final response = await http.get(Uri.parse('$_baseUrl/messages'));
+//   final SystemChatMessagePromptTemplate promptTemplate =
+//       SystemChatMessagePromptTemplate.fromTemplate('You only talk like yoda\n');
 
-  //   if (response.statusCode == 200) {
-  //     List<dynamic> jsonMessages = jsonDecode(response.body);
-  //     List<ChatMessage> chatMessages = jsonMessages.map((jsonMsg) {
-  //       return ChatMessage(
-  //           content: jsonMsg['message'],
-  //           isUserMessage: jsonMsg['isUser'] == 'true',
-  //           id: jsonMsg['uuid'],
-  //           timestamp: jsonMsg['timestamp']
-  //           // Parse other fields as necessary
-  //           );
-  //     }).toList();
+//   final HumanChatMessagePromptTemplate humanTemplate =
+//       HumanChatMessagePromptTemplate.fromTemplate('{text}');
 
-  //     return chatMessages;
-  //   } else {
-  //     throw Exception('Failed to load messages');
-  //   }
-  // }
+//   final ChatPromptTemplate chatPrompt = ChatPromptTemplate.fromPromptMessages([
+//     promptTemplate,
+//     humanTemplate,
+//   ]);
+
+//   const StringOutputParser stringOutputParser = StringOutputParser();
+//   final Runnable chain =
+//       Runnable.fromList([chatPrompt, model, stringOutputParser]);
+
+//   var result = await chain.invoke({'text': input});
+
+//   return result;
+// }
