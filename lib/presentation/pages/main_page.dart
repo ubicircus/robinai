@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:robin_ai/core/constants.dart';
 import 'package:robin_ai/data/datasources/llm_models/ModelInterface.dart';
 import 'package:robin_ai/data/datasources/chat_local.dart';
 import 'package:robin_ai/data/datasources/chat_network.dart';
@@ -103,6 +104,7 @@ class ChatPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         toolbarHeight: 100,
+        backgroundColor: AppColors.lightSage,
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
@@ -209,8 +211,21 @@ class ChatPage extends StatelessWidget {
             user: _user,
             theme: DefaultChatTheme(
               primaryColor: Colors.teal,
-              backgroundColor: Colors.white,
-              inputBackgroundColor: Colors.teal.shade100,
+              backgroundColor: AppColors.lightSage,
+              inputBackgroundColor: Colors.white,
+              inputContainerDecoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(8.0),
+                  topRight: Radius.circular(8.0),
+                ),
+                border: Border(
+                  top: BorderSide(
+                    color: Colors.teal.shade100,
+                    width: 1.0,
+                  ),
+                ),
+              ),
               inputTextColor: Colors.black,
               dateDividerTextStyle: TextStyle(
                 color: Colors.teal.shade600,
