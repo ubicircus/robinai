@@ -71,9 +71,12 @@ class _ServiceApiKeysPageState extends State<ServiceApiKeysPage> {
     // Assuming readApiKeys returns a Map<String, String> with the keys
     var keys = await _appSettingsService.readApiKeys();
     setState(() {
-      _openAIController.text = obscureApiKey(keys['openai'] as String);
-      _groqController.text = obscureApiKey(keys['groq'] as String);
-      _dyrektywaController.text = obscureApiKey(keys['dyrektywa'] as String);
+      _openAIController.text =
+          obscureApiKey(keys[ServiceName.openai.name] as String);
+      _groqController.text =
+          obscureApiKey(keys[ServiceName.groq.name] as String);
+      _dyrektywaController.text =
+          obscureApiKey(keys[ServiceName.dyrektywa.name] as String);
     });
   }
 
@@ -88,15 +91,15 @@ class _ServiceApiKeysPageState extends State<ServiceApiKeysPage> {
   }
 
   void _updateOpenAIKey(String value) {
-    _appSettingsService.updateApiKey('openai', value);
+    _appSettingsService.updateApiKey(ServiceName.openai.name, value);
   }
 
   void _updateGroqKey(String value) {
-    _appSettingsService.updateApiKey('groq', value);
+    _appSettingsService.updateApiKey(ServiceName.groq.name, value);
   }
 
   void _updateDyrektywaKey(String value) {
-    _appSettingsService.updateApiKey('dyrektywa', value);
+    _appSettingsService.updateApiKey(ServiceName.dyrektywa.name, value);
   }
 
   @override

@@ -104,7 +104,7 @@ class ChatPage extends StatelessWidget {
       appBar: AppBar(
         toolbarHeight: 100,
         title: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             // Text(
             //   context.watch<ChatBloc>().state.serviceName,

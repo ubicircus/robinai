@@ -11,7 +11,7 @@ class AppConstants {
       caption: 'Groq',
     ),
     ServiceName.dyrektywa: ServiceMetadata(
-      logoAsset: 'assets/images/dyr-logo.png',
+      logoAsset: 'assets/images/ce-logo.png',
       caption: 'Dyrektywa',
     ),
   };
