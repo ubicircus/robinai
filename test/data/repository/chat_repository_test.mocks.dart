@@ -3,11 +3,14 @@
 // Do not manually edit this file.
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'dart:async' as _i4;
+import 'dart:async' as _i3;
 
 import 'package:mockito/mockito.dart' as _i1;
-import 'package:robin_ai/data/datasources/chat_network.dart' as _i3;
-import 'package:robin_ai/data/model/chat_message_network_model.dart' as _i2;
+import 'package:mockito/src/dummies.dart' as _i7;
+import 'package:robin_ai/core/service_names.dart' as _i5;
+import 'package:robin_ai/data/datasources/chat_network.dart' as _i2;
+import 'package:robin_ai/data/model/chat_message_network_model.dart' as _i4;
+import 'package:robin_ai/domain/entities/chat_message_class.dart' as _i6;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -22,41 +25,54 @@ import 'package:robin_ai/data/model/chat_message_network_model.dart' as _i2;
 // ignore_for_file: camel_case_types
 // ignore_for_file: subtype_of_sealed_class
 
-class _FakeChatMessageNetworkModel_0 extends _i1.SmartFake
-    implements _i2.ChatMessageNetworkModel {
-  _FakeChatMessageNetworkModel_0(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
-}
-
 /// A class which mocks [ChatNetworkDataSource].
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockChatNetworkDataSource extends _i1.Mock
-    implements _i3.ChatNetworkDataSource {
+    implements _i2.ChatNetworkDataSource {
   MockChatNetworkDataSource() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
-  _i4.Future<_i2.ChatMessageNetworkModel> sendChatMessage(
-          _i2.ChatMessageNetworkModel? message) =>
+  _i3.Future<String> sendChatMessage(
+    _i4.ChatMessageNetworkModel? message,
+    _i5.ServiceName? serviceName,
+    String? modelName,
+    List<_i6.ChatMessage>? conversationHistory,
+  ) =>
       (super.noSuchMethod(
         Invocation.method(
           #sendChatMessage,
-          [message],
+          [
+            message,
+            serviceName,
+            modelName,
+            conversationHistory,
+          ],
         ),
-        returnValue: _i4.Future<_i2.ChatMessageNetworkModel>.value(
-            _FakeChatMessageNetworkModel_0(
+        returnValue: _i3.Future<String>.value(_i7.dummyValue<String>(
           this,
           Invocation.method(
             #sendChatMessage,
-            [message],
+            [
+              message,
+              serviceName,
+              modelName,
+              conversationHistory,
+            ],
           ),
         )),
-      ) as _i4.Future<_i2.ChatMessageNetworkModel>);
+      ) as _i3.Future<String>);
+
+  @override
+  _i3.Future<List<String>> getModels({required _i5.ServiceName? serviceName}) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #getModels,
+          [],
+          {#serviceName: serviceName},
+        ),
+        returnValue: _i3.Future<List<String>>.value(<String>[]),
+      ) as _i3.Future<List<String>>);
 }

@@ -6,6 +6,7 @@ class ChatState {
   final ServiceName serviceName;
   final String modelName;
   final List<String> modelsAvailable;
+  final ContextModel context;
 
   ChatState({
     this.thread,
@@ -13,7 +14,18 @@ class ChatState {
     this.serviceName = ServiceName.openai,
     this.modelName = 'gpt-3.5-turbo-0613',
     this.modelsAvailable = const ['gpt-3.5-turbo-0613'],
-  });
+    ContextModel? context,
+  }) : context = context ??
+            ContextModel(
+              id: '1',
+              name: 'Basic Assistant',
+              text: 'You are a helpful assistant',
+              formatSpecifier: '',
+              actionUrl: '',
+              isActionActive: false,
+              isContextActive: true,
+              isDefault: true,
+            );
 
   factory ChatState.initial() {
     return ChatState(
@@ -27,6 +39,7 @@ class ChatState {
     ServiceName? serviceName,
     String? modelName,
     List<String>? modelsAvailable,
+    ContextModel? context,
   }) {
     return ChatState(
       thread: thread ?? this.thread,
@@ -34,6 +47,7 @@ class ChatState {
       serviceName: serviceName ?? this.serviceName,
       modelName: modelName ?? this.modelName,
       modelsAvailable: modelsAvailable ?? this.modelsAvailable,
+      context: context ?? this.context,
     );
   }
 }

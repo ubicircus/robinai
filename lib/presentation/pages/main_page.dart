@@ -19,10 +19,13 @@ import 'package:robin_ai/presentation/bloc/chat_bloc.dart';
 
 import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
 import 'package:flutter_chat_ui/flutter_chat_ui.dart' hide ChatState;
+import 'package:robin_ai/presentation/config/context/app_settings_context_config.dart';
+import 'package:robin_ai/presentation/widgets/context_options_widget.dart';
 import 'package:robin_ai/presentation/widgets/models_popupmenu.dart';
 import 'package:robin_ai/presentation/widgets/services_popumenu.dart';
 import 'package:uuid/uuid.dart';
 import 'package:robin_ai/domain/usecases/messages/send_message.dart';
+import 'package:flutter/services.dart';
 
 void main() {
   runApp(const MyApp());
@@ -101,6 +104,7 @@ class ChatPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final ContextModelService _contextModelService = ContextModelService();
     return Scaffold(
       appBar: AppBar(
         toolbarHeight: 100,
@@ -208,6 +212,16 @@ class ChatPage extends StatelessWidget {
                 _handleSendMessage(context, message, state.thread!.id),
             showUserAvatars: true,
             showUserNames: true,
+            // emptyState: Center(
+            //   child: ContextOptionsWidget(
+            //     futureOptions: _contextModelService.listAllContextModels(),
+            //   ),
+            // ),
+            // onMessageDoubleTap: (context, p1) =>
+            //     Clipboard.setData(ClipboardData(text: p1.)) <-implement laters
+            // listBottomWidget: ContextOptionsWidget(
+            //   futureOptions: _contextModelService.listAllContextModels(),
+            // ),
             user: _user,
             theme: DefaultChatTheme(
               primaryColor: Colors.teal,

@@ -5,7 +5,7 @@ import 'package:robin_ai/data/datasources/llm_models/dyrektywa/machinery_directi
 
 import 'package:robin_ai/domain/entities/chat_message_class.dart';
 import 'package:http/http.dart' as http;
-import 'package:robin_ai/services/app_settings_service.dart';
+import 'package:robin_ai/presentation/config/services/app_settings_service.dart';
 
 class DyrektywaModel implements ModelInterface {
   @override

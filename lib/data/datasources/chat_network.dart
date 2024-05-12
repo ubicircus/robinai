@@ -5,6 +5,7 @@ import 'package:robin_ai/data/datasources/llm_models/ModelFactoryInterface.dart'
 import 'package:robin_ai/data/model/chat_message_network_model.dart';
 import 'package:robin_ai/data/datasources/llm_models/ModelInterface.dart';
 import 'package:robin_ai/domain/entities/chat_message_class.dart';
+import 'package:robin_ai/presentation/config/context/model/context_model.dart';
 
 class ChatNetworkDataSource {
   final ModelFactoryInterface _modelFactory;
@@ -14,27 +15,31 @@ class ChatNetworkDataSource {
 
   // POST request to send a message
   Future<String> sendChatMessage(
-      ChatMessageNetworkModel message,
-      ServiceName serviceName,
-      String modelName,
-      List<ChatMessage> conversationHistory) async {
+    ChatMessageNetworkModel message,
+    ServiceName serviceName,
+    String modelName,
+    List<ChatMessage> conversationHistory,
+    ContextModel context,
+  ) async {
     // Get the modelInterface for the specific service
     final ModelInterface modelInterface = _modelFactory.getService(serviceName);
 
     // Now you can use this instance for making network requests
+    print(context.name);
     return modelInterface.sendChatMessageModel(
       modelName: modelName,
       message: message.content,
       conversationHistory: conversationHistory,
-      systemPrompt: '''
-You are an AI assistant designed for concise, engaging conversations. Follow these rules:
-- Use the fewest words possible while maintaining clarity, impact and natural language
-- Keep a friendly, casual tone with occasional colloquialisms
-- Ask for clarification to avoid assumptions
-- Focus solely on instructions and provide relevant, comprehensive responses
-- Continuously improve based on user feedback
-Let's keep it concise and engaging!
-''',
+      systemPrompt: context.text,
+//       systemPrompt: '''
+// You are an AI assistant designed for concise, engaging conversations. Follow these rules:
+// - Use the fewest words possible while maintaining clarity, impact and natural language
+// - Keep a friendly, casual tone with occasional colloquialisms
+// - Ask for clarification to avoid assumptions
+// - Focus solely on instructions and provide relevant, comprehensive responses
+// - Continuously improve based on user feedback
+// Let's keep it concise and engaging!
+// ''',
     ); // this will be implemented later
   }
 

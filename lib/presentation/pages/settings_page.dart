@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:robin_ai/core/service_names.dart';
-import 'package:robin_ai/services/app_settings_service.dart';
+import 'package:robin_ai/presentation/config/services/app_settings_service.dart';
+import 'package:robin_ai/presentation/pages/context_list_page.dart';
 
 // Model class for settings options
 class SettingsOption {
@@ -19,8 +21,11 @@ class SettingsPage extends StatelessWidget {
       iconData: Icons.vpn_key,
       page: ServiceApiKeysPage(),
     ),
-    // Add more settings options
-    // ...
+    SettingsOption(
+      title: 'Context Config',
+      iconData: FontAwesomeIcons.brain,
+      page: ContextListPage(),
+    ),
   ];
 
   @override

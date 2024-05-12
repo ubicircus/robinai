@@ -18,8 +18,8 @@ class ChatLocalDataSource {
 
   Future<void> initialize() async {
     try {
-      final appDir = await getApplicationDocumentsDirectory();
-      Hive.init(appDir.path);
+      // final appDir = await getApplicationDocumentsDirectory();
+      // Hive.init(appDir.path);
 
       _threadBox = await Hive.openBox<ThreadModel>(_threadBoxName);
       _isInitialized = true;

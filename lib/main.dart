@@ -17,9 +17,11 @@ import 'package:robin_ai/domain/usecases/get_models_use_case.dart';
 import 'package:robin_ai/domain/usecases/threads/get_last_thread_id_usecase.dart';
 import 'package:robin_ai/domain/usecases/threads/get_thread_details_by_id_usecase.dart';
 import 'package:robin_ai/domain/usecases/threads/get_threads_list_usecase.dart';
+import 'package:robin_ai/presentation/config/context/app_settings_context_config.dart';
+import 'package:robin_ai/presentation/config/context/model/context_model.dart';
+import 'package:robin_ai/presentation/config/services/app_settings_service.dart';
+import 'package:robin_ai/presentation/config/services/model/service_model.dart';
 import 'package:robin_ai/presentation/pages/settings_page.dart';
-import 'package:robin_ai/services/app_settings_service.dart';
-import 'package:robin_ai/services/model/service_model.dart';
 
 // import 'presentation/provider/chat_provider.dart';
 import 'presentation/pages/main_page.dart';
@@ -52,6 +54,7 @@ void main() async {
   Hive.registerAdapter(ThreadModelAdapter());
   Hive.registerAdapter(MessageAdapter());
   Hive.registerAdapter(ServiceModelAdapter());
+  Hive.registerAdapter(ContextModelAdapter());
 
   // await Hive.openBox('chatHistory');
   // await Hive.openBox('threads');
@@ -102,6 +105,7 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   late ChatLocalDataSource chatLocalDataSource;
   late AppSettingsService appSettingsService;
+  late ContextModelService contextModelService;
 
   @override
   void initState() {
@@ -109,6 +113,8 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     chatLocalDataSource = ChatLocalDataSource();
     appSettingsService = AppSettingsService();
     appSettingsService.initAppSettings();
+    contextModelService = ContextModelService();
+    contextModelService.initContextModelService();
     WidgetsBinding.instance.addObserver(this);
   }
 
@@ -117,6 +123,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     WidgetsBinding.instance.removeObserver(this);
     chatLocalDataSource.closeBox(); // Close Hive box
     appSettingsService.closeBox();
+    contextModelService.closeBox();
     super.dispose();
   }
 
@@ -126,6 +133,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       chatLocalDataSource
           .closeBox(); // Close Hive box when app is fully terminated
       appSettingsService.closeBox();
+      contextModelService.closeBox();
     }
   }
 

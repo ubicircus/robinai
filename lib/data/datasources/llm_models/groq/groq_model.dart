@@ -4,7 +4,7 @@ import 'package:robin_ai/data/datasources/llm_models/ModelInterface.dart';
 import 'package:robin_ai/data/datasources/llm_models/groq/groq_mapper.dart';
 import 'package:robin_ai/data/model/groq_message_model.dart';
 import 'package:robin_ai/domain/entities/chat_message_class.dart';
-import 'package:robin_ai/services/app_settings_service.dart';
+import 'package:robin_ai/presentation/config/services/app_settings_service.dart';
 import 'package:http/http.dart' as http;
 
 class GroqModel implements ModelInterface {

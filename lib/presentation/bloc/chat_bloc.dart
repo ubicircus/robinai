@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_chat_ui/flutter_chat_ui.dart';
 import 'package:robin_ai/core/service_names.dart';
 import 'package:robin_ai/data/repository/chat_message_repository.dart';
 import 'package:robin_ai/domain/entities/chat_message_class.dart';
@@ -8,6 +9,7 @@ import 'package:robin_ai/domain/usecases/messages/send_message.dart';
 import 'package:robin_ai/domain/usecases/threads/get_last_thread_id_usecase.dart';
 import 'package:robin_ai/domain/usecases/threads/get_thread_details_by_id_usecase.dart';
 import 'package:robin_ai/domain/usecases/threads/get_threads_list_usecase.dart';
+import 'package:robin_ai/presentation/config/context/model/context_model.dart';
 import 'package:uuid/uuid.dart';
 
 part 'chat_event.dart';
@@ -37,6 +39,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     on<SelectServiceProviderEvent>(_handleSelectServiceProvider);
     on<SelectModelEvent>(_handleSelectModel);
     on<GetModelsEvent>(_getModels);
+    on<SelectDefaultContext>(_handleSelectContext);
   }
 
   void _handleSendMessage(
@@ -64,12 +67,12 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
 
       // Send the message
       final responseMessage = await sendMessageUseCase.call(
-        threadId,
-        userMessage,
-        state.serviceName,
-        state.modelName,
-        updatedThread.messages,
-      );
+          threadId,
+          userMessage,
+          state.serviceName,
+          state.modelName,
+          updatedThread.messages,
+          state.context);
 
       // Add the response message to the thread
       updatedThread.messages.insert(0, responseMessage);
@@ -173,5 +176,11 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     } catch (e) {
       rethrow;
     }
+  }
+
+  _handleSelectContext(
+      SelectDefaultContext event, Emitter<ChatState> emit) async {
+    final ContextModel context = event.context;
+    emit(state.copyWith(context: context));
   }
 }

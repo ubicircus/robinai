@@ -3,7 +3,7 @@ import 'package:robin_ai/core/service_names.dart';
 import 'package:robin_ai/data/datasources/llm_models/ModelInterface.dart';
 import 'package:robin_ai/data/datasources/llm_models/openai/openai_mapper.dart';
 import 'package:robin_ai/domain/entities/chat_message_class.dart';
-import 'package:robin_ai/services/app_settings_service.dart';
+import 'package:robin_ai/presentation/config/services/app_settings_service.dart';
 
 class OpenAIModel implements ModelInterface {
   @override
@@ -30,7 +30,6 @@ class OpenAIModel implements ModelInterface {
       ],
       role: OpenAIChatMessageRole.system,
     );
-    print(systemMessage);
 // Define the user message
     final userMessage = OpenAIChatCompletionChoiceMessageModel(
       content: [
@@ -45,7 +44,6 @@ class OpenAIModel implements ModelInterface {
       systemMessage,
       userMessage
     ];
-    print(requestMessages.length);
     // Send the chat completion request
     final chatCompletion = await openai.chat.create(
       model: modelName,

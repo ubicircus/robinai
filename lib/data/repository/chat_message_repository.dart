@@ -1,4 +1,5 @@
 import 'package:robin_ai/core/service_names.dart';
+import 'package:robin_ai/presentation/config/context/model/context_model.dart';
 import 'package:uuid/uuid.dart';
 import '../../domain/entities/chat_message_class.dart';
 import '../../domain/interfaces/chat_message_repository_interface.dart';
@@ -25,13 +26,13 @@ class ChatMessageRepository implements IChatMessageRepository {
   }
 
   @override
-  Future<ChatMessage> sendChatMessage({
-    required String threadId,
-    required ChatMessage message,
-    required ServiceName serviceName,
-    required String modelName,
-    required List<ChatMessage> chatHistory,
-  }) async {
+  Future<ChatMessage> sendChatMessage(
+      {required String threadId,
+      required ChatMessage message,
+      required ServiceName serviceName,
+      required String modelName,
+      required List<ChatMessage> chatHistory,
+      required ContextModel context}) async {
     await ensureInitialized();
 
     try {
@@ -39,11 +40,7 @@ class ChatMessageRepository implements IChatMessageRepository {
           ChatMessageMapper.toNetworkModel(message);
       ChatMessageNetworkModel responseNetworkModel =
           await _sendMessageToNetworkAndGetResponse(
-        networkModel,
-        serviceName,
-        modelName,
-        chatHistory,
-      );
+              networkModel, serviceName, modelName, chatHistory, context);
       chatLocalDataSource.addMessageToThread(
           threadId, ChatMessageLocalMapper.toLocalModel(message));
       chatLocalDataSource.addMessageToThread(
@@ -62,14 +59,11 @@ class ChatMessageRepository implements IChatMessageRepository {
     ServiceName serviceName,
     String modelName,
     List<ChatMessage> chatHistory,
+    ContextModel context,
   ) async {
     try {
       String response = await chatNetworkDataSource.sendChatMessage(
-        message,
-        serviceName,
-        modelName,
-        chatHistory,
-      );
+          message, serviceName, modelName, chatHistory, context);
       ChatMessageNetworkModel responseModel = ChatMessageNetworkModel(
         id: Uuid().v4(),
         content: response,

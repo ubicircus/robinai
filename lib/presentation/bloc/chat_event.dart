@@ -37,6 +37,11 @@ class GetModelsEvent extends ChatEvent {
   final ServiceName serviceName;
   GetModelsEvent({required this.serviceName});
 }
+
+class SelectDefaultContext extends ChatEvent {
+  final ContextModel context;
+  SelectDefaultContext({required this.context});
+}
 // chat_state.dart
 
 // class ChatState {

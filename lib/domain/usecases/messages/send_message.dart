@@ -1,5 +1,6 @@
 import 'package:robin_ai/core/service_names.dart';
 import 'package:robin_ai/domain/entities/chat_message_class.dart';
+import 'package:robin_ai/presentation/config/context/model/context_model.dart';
 
 import '../../../data/repository/chat_message_repository.dart';
 import '../../../../core/error_messages.dart';
@@ -10,19 +11,21 @@ class SendMessageUseCase {
   SendMessageUseCase({required this.chatRepository});
 
   Future<ChatMessage> call(
-      String threadId,
-      ChatMessage message,
-      ServiceName serviceName,
-      String modelName,
-      List<ChatMessage> chatHistory) async {
+    String threadId,
+    ChatMessage message,
+    ServiceName serviceName,
+    String modelName,
+    List<ChatMessage> chatHistory,
+    ContextModel context,
+  ) async {
     try {
       final responseMessage = await chatRepository.sendChatMessage(
-        threadId: threadId,
-        message: message,
-        serviceName: serviceName,
-        modelName: modelName,
-        chatHistory: chatHistory,
-      );
+          threadId: threadId,
+          message: message,
+          serviceName: serviceName,
+          modelName: modelName,
+          chatHistory: chatHistory,
+          context: context);
       return responseMessage;
     } catch (e) {
       // Log the error or handle it appropriately
