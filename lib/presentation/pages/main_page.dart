@@ -116,6 +116,7 @@ class ChatPage extends StatelessWidget {
             //   context.watch<ChatBloc>().state.serviceName,
             //   style: TextStyle(fontSize: 16),
             // ),
+
             ServicesPopupMenu(),
             const SizedBox(height: 15),
             ModelsPopupMenu(),
@@ -139,7 +140,7 @@ class ChatPage extends StatelessWidget {
               children: [
                 Expanded(
                   child: state.threads.isEmpty
-                      ? Center(
+                      ? const Center(
                           child: Text(
                               "No threads"), // Show "No threads" text instead of CircularProgressIndicator
                         )

@@ -64,6 +64,7 @@ class _ServiceApiKeysPageState extends State<ServiceApiKeysPage> {
   TextEditingController _openAIController = TextEditingController();
   TextEditingController _groqController = TextEditingController();
   TextEditingController _dyrektywaController = TextEditingController();
+  TextEditingController _perplexityController = TextEditingController();
   AppSettingsService _appSettingsService = AppSettingsService();
 
   @override
@@ -80,6 +81,8 @@ class _ServiceApiKeysPageState extends State<ServiceApiKeysPage> {
           obscureApiKey(keys[ServiceName.openai.name] as String);
       _groqController.text =
           obscureApiKey(keys[ServiceName.groq.name] as String);
+      _perplexityController.text =
+          obscureApiKey(keys[ServiceName.perplexity.name] as String);
       _dyrektywaController.text =
           obscureApiKey(keys[ServiceName.dyrektywa.name] as String);
     });
@@ -105,6 +108,10 @@ class _ServiceApiKeysPageState extends State<ServiceApiKeysPage> {
 
   void _updateDyrektywaKey(String value) {
     _appSettingsService.updateApiKey(ServiceName.dyrektywa.name, value);
+  }
+
+  void _updatePerplexityKey(String value) {
+    _appSettingsService.updateApiKey(ServiceName.perplexity.name, value);
   }
 
   @override
@@ -153,6 +160,24 @@ class _ServiceApiKeysPageState extends State<ServiceApiKeysPage> {
                 fillColor: Colors.teal.shade50,
               ),
               onChanged: _updateGroqKey,
+              // Remove the next two lines to display the text normally but obscured
+              // obscureText: true,
+              // obscuringCharacter: '*',
+            ),
+          ),
+          ListTile(
+            title: Text('Perplexity'),
+            subtitle: TextFormField(
+              controller: _perplexityController,
+              decoration: InputDecoration(
+                hintText: 'Enter Perplexity API Key',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(30.0),
+                ),
+                filled: true,
+                fillColor: Colors.teal.shade50,
+              ),
+              onChanged: _updatePerplexityKey,
               // Remove the next two lines to display the text normally but obscured
               // obscureText: true,
               // obscuringCharacter: '*',

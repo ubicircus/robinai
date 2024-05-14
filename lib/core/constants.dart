@@ -15,6 +15,10 @@ class AppConstants {
       logoAsset: 'assets/images/ce-logo.png',
       caption: 'Dyrektywa',
     ),
+    ServiceName.perplexity: ServiceMetadata(
+      logoAsset: 'assets/images/perplexity-logo.png',
+      caption: 'Perplexity',
+    ),
   };
 }
 

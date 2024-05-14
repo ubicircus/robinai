@@ -45,3 +45,6 @@ app.*.map.json
 
 # apikeys
 .env
+
+# Android Studio ekeys
+key.properties
