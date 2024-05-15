@@ -20,7 +20,7 @@ class DyrektywaModel implements ModelInterface {
     String? apiKey = apiKeys[ServiceName.dyrektywa.name] ?? '';
 
     Uri apiUrl = Uri.parse('https://standardy.kn34.ddns.me/talk');
-    ; // Ensure Constants.talkUrl is available in your codebase
+    // Ensure Constants.talkUrl is available in your codebase
 
     final jsonPayload = jsonEncode({
       'question': message,

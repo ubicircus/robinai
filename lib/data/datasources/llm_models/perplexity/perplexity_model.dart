@@ -76,12 +76,11 @@ class PerplexityModel implements ModelInterface {
     // Check if the response was successful
     if (response.statusCode == 200) {
       final responseData = jsonDecode(response.body);
-      print(responseData);
       final completedMessage = responseData['choices'][0]['message']['content'];
 
       String correctedString = convertLatin1ToUtf8(completedMessage);
-
-      return correctedString;
+      print(completedMessage);
+      return completedMessage;
     } else {
       throw Exception(
           'Failed to send chat message: ${response.statusCode} - ${response.body}');

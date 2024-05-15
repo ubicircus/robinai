@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:robin_ai/core/constants.dart';
+import 'package:robin_ai/core/service_names.dart';
 import 'package:robin_ai/data/datasources/llm_models/ModelInterface.dart';
 import 'package:robin_ai/data/datasources/chat_local.dart';
 import 'package:robin_ai/data/datasources/chat_network.dart';
@@ -20,6 +21,8 @@ import 'package:robin_ai/presentation/bloc/chat_bloc.dart';
 import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
 import 'package:flutter_chat_ui/flutter_chat_ui.dart' hide ChatState;
 import 'package:robin_ai/presentation/config/context/app_settings_context_config.dart';
+import 'package:robin_ai/presentation/config/services/app_settings_service.dart';
+import 'package:robin_ai/presentation/widgets/api_key_notice.dart';
 import 'package:robin_ai/presentation/widgets/context_options_widget.dart';
 import 'package:robin_ai/presentation/widgets/models_popupmenu.dart';
 import 'package:robin_ai/presentation/widgets/services_popumenu.dart';
@@ -39,9 +42,12 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
+  bool _fadeIn = true;
+
   @override
   void initState() {
     BlocProvider.of<ChatBloc>(context).add(InitializeAppEvent());
+    _fadeIn = true;
     super.initState();
   }
 
@@ -105,22 +111,31 @@ class ChatPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ContextModelService _contextModelService = ContextModelService();
+
     return Scaffold(
       appBar: AppBar(
         toolbarHeight: 100,
         backgroundColor: AppColors.lightSage,
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            // Text(
-            //   context.watch<ChatBloc>().state.serviceName,
-            //   style: TextStyle(fontSize: 16),
-            // ),
-
-            ServicesPopupMenu(),
-            const SizedBox(height: 15),
-            ModelsPopupMenu(),
-          ],
+        title: FutureBuilder(
+          future: AppSettingsService().readApiKeys(),
+          builder: (context, snapshot) {
+            if (snapshot.hasData) {
+              Map<String, String> apiKeys = snapshot.data!;
+              bool hasApiKey = _hasApiKey(apiKeys);
+              return hasApiKey
+                  ? Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        ServicesPopupMenu(),
+                        const SizedBox(height: 15),
+                        ModelsPopupMenu(),
+                      ],
+                    )
+                  : Center(child: ApiKeyNotice());
+            } else {
+              return Center(child: CircularProgressIndicator());
+            }
+          },
         ),
         actions: [
           IconButton(
@@ -303,5 +318,15 @@ class ChatPage extends StatelessWidget {
   DateTime? getLastMessageDate(List<ChatMessage> messages) {
     final lastMessage = getLastMessage(messages);
     return lastMessage?.timestamp;
+  }
+
+  bool _hasApiKey(Map<String, String> apiKeys) {
+    for (ServiceName serviceName in ServiceName.values) {
+      if (apiKeys[serviceName.name] != null &&
+          apiKeys[serviceName.name]!.isNotEmpty) {
+        return true;
+      }
+    }
+    return false;
   }
 }
