@@ -19,6 +19,10 @@ class AppConstants {
       logoAsset: 'assets/images/perplexity-logo.png',
       caption: 'Perplexity',
     ),
+    ServiceName.gemini: ServiceMetadata(
+      logoAsset: 'assets/images/gemini-logo.png',
+      caption: 'Gemini',
+    ),
   };
 }
 

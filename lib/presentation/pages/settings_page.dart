@@ -65,6 +65,7 @@ class _ServiceApiKeysPageState extends State<ServiceApiKeysPage> {
   TextEditingController _groqController = TextEditingController();
   TextEditingController _dyrektywaController = TextEditingController();
   TextEditingController _perplexityController = TextEditingController();
+  TextEditingController _geminiController = TextEditingController();
   AppSettingsService _appSettingsService = AppSettingsService();
 
   @override
@@ -85,6 +86,8 @@ class _ServiceApiKeysPageState extends State<ServiceApiKeysPage> {
           obscureApiKey(keys[ServiceName.perplexity.name] as String);
       _dyrektywaController.text =
           obscureApiKey(keys[ServiceName.dyrektywa.name] as String);
+      _geminiController.text =
+          obscureApiKey(keys[ServiceName.gemini.name] as String);
     });
   }
 
@@ -112,6 +115,10 @@ class _ServiceApiKeysPageState extends State<ServiceApiKeysPage> {
 
   void _updatePerplexityKey(String value) {
     _appSettingsService.updateApiKey(ServiceName.perplexity.name, value);
+  }
+
+  void _updateGeminiKey(String value) {
+    _appSettingsService.updateApiKey(ServiceName.gemini.name, value);
   }
 
   @override
@@ -142,9 +149,6 @@ class _ServiceApiKeysPageState extends State<ServiceApiKeysPage> {
                 fillColor: Colors.teal.shade50,
               ),
               onChanged: _updateOpenAIKey,
-              // Remove the next two lines to display the text normally but obscured
-              // obscureText: true,
-              // obscuringCharacter: '*',
             ),
           ),
           ListTile(
@@ -160,9 +164,6 @@ class _ServiceApiKeysPageState extends State<ServiceApiKeysPage> {
                 fillColor: Colors.teal.shade50,
               ),
               onChanged: _updateGroqKey,
-              // Remove the next two lines to display the text normally but obscured
-              // obscureText: true,
-              // obscuringCharacter: '*',
             ),
           ),
           ListTile(
@@ -178,9 +179,21 @@ class _ServiceApiKeysPageState extends State<ServiceApiKeysPage> {
                 fillColor: Colors.teal.shade50,
               ),
               onChanged: _updatePerplexityKey,
-              // Remove the next two lines to display the text normally but obscured
-              // obscureText: true,
-              // obscuringCharacter: '*',
+            ),
+          ),
+          ListTile(
+            title: Text('Gemini'),
+            subtitle: TextFormField(
+              controller: _geminiController,
+              decoration: InputDecoration(
+                hintText: 'Enter Gemini API Key',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(30.0),
+                ),
+                filled: true,
+                fillColor: Colors.teal.shade50,
+              ),
+              onChanged: _updateGeminiKey,
             ),
           ),
           ListTile(
@@ -196,9 +209,6 @@ class _ServiceApiKeysPageState extends State<ServiceApiKeysPage> {
                 fillColor: Colors.teal.shade50,
               ),
               onChanged: _updateDyrektywaKey,
-              // Remove the next two lines to display the text normally but obscured
-              // obscureText: true,
-              // obscuringCharacter: '*',
             ),
           ),
         ],

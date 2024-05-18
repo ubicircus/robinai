@@ -94,6 +94,18 @@ void _showCupertinoServicesMenu(BuildContext context) async {
             ),
           );
           break;
+        case ServiceName.gemini:
+          actions.add(
+            CupertinoActionSheetAction(
+              child: const Text('Gemini'),
+              onPressed: () {
+                context.read<ChatBloc>().add(SelectServiceProviderEvent(
+                    serviceName: ServiceName.gemini));
+                Navigator.pop(context);
+              },
+            ),
+          );
+          break;
         case ServiceName.dyrektywa:
           actions.add(
             CupertinoActionSheetAction(
