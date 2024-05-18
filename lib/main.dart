@@ -21,6 +21,7 @@ import 'package:robin_ai/presentation/config/context/app_settings_context_config
 import 'package:robin_ai/presentation/config/context/model/context_model.dart';
 import 'package:robin_ai/presentation/config/services/app_settings_service.dart';
 import 'package:robin_ai/presentation/config/services/model/service_model.dart';
+import 'package:robin_ai/presentation/pages/chat_page/chat_page.dart';
 import 'package:robin_ai/presentation/pages/settings_page.dart';
 
 // import 'presentation/provider/chat_provider.dart';

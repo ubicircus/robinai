@@ -8,7 +8,18 @@ abstract class ModelInterface {
     required List<ChatMessage> conversationHistory,
     required String systemPrompt,
   });
-  Future<String> sendAudioFile(String modelName, List<int> audioData);
-  Future<List<String>> getModels({required ServiceName serviceName});
-  Future<List<int>> getImage(String modelName, String dalleCode);
+
+  Future<String> sendAudioFile(
+    String modelName,
+    List<int> audioData,
+  );
+
+  Future<List<String>> getModels({
+    required ServiceName serviceName,
+  });
+
+  Future<List<int>> getImage(
+    String modelName,
+    String dalleCode,
+  );
 }

@@ -29,7 +29,7 @@ class PerplexityModel implements ModelInterface {
       content: PerplexityChatMessageContentItemModel.text(systemPrompt),
     );
 
-    // Define the user message
+    // Define the user message - not used, this message is already in the history
     final userMessage = PerplexityChatMessageModel(
       role: PerplexityChatMessageRole.user,
       content: PerplexityChatMessageContentItemModel.text(message),
