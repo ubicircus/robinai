@@ -47,7 +47,7 @@ dependencies:
   langchain_openai: ^0.0.14+1
   mockito: ^5.4.2
   flutter_chat_ui: ^1.6.10
-  image_picker: ^1.0.4
+  image_picker: ^1.0.8
   file_picker: ^6.1.1
   open_filex: ^4.3.4
   flutter_bloc: ^8.1.5

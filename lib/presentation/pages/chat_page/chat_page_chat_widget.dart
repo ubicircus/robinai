@@ -6,6 +6,7 @@ import 'package:robin_ai/core/constants.dart';
 import 'package:robin_ai/domain/entities/chat_message_class.dart';
 import 'package:robin_ai/presentation/bloc/chat_bloc.dart';
 import 'package:uuid/uuid.dart';
+import 'package:image_picker/image_picker.dart';
 
 class ChatPageChatWidget extends StatefulWidget {
   const ChatPageChatWidget({super.key});
@@ -32,21 +33,27 @@ class _ChatPageChatWidgetState extends State<ChatPageChatWidget> {
         messages: _mapChatMessages(state.thread!.messages),
         onSendPressed: (message) =>
             _handleSendMessage(context, message, state.thread!.id),
-        showUserAvatars: true,
         showUserNames: true,
+        onAttachmentPressed: _handleAttachmentPressed,
         user: _user,
         theme: DefaultChatTheme(
           primaryColor: Colors.teal,
           backgroundColor: AppColors.lightSage,
           inputBackgroundColor: Colors.white,
+
           inputContainerDecoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(8.0),
-              topRight: Radius.circular(8.0),
-            ),
+            borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(20.0),
+                topRight: Radius.circular(20.0),
+                bottomLeft: Radius.circular(20.0),
+                bottomRight: Radius.circular(20.0)),
             border: Border(
               top: BorderSide(
+                color: Colors.teal.shade100,
+                width: 1.0,
+              ),
+              bottom: BorderSide(
                 color: Colors.teal.shade100,
                 width: 1.0,
               ),
@@ -56,12 +63,14 @@ class _ChatPageChatWidgetState extends State<ChatPageChatWidget> {
           dateDividerTextStyle: TextStyle(
             color: Colors.teal.shade600,
           ),
-          receivedMessageBodyTextStyle: TextStyle(
+          receivedMessageBodyTextStyle: const TextStyle(
             color: Colors.black,
           ),
-          sentMessageBodyTextStyle: TextStyle(
+          sentMessageBodyTextStyle: const TextStyle(
             color: Colors.white,
           ),
+          // inputPadding: const EdgeInsets.only(bottom: 30),
+          inputMargin: const EdgeInsets.only(bottom: 10),
         ),
       );
     });
@@ -100,5 +109,64 @@ class _ChatPageChatWidgetState extends State<ChatPageChatWidget> {
     context
         .read<ChatBloc>()
         .add(SendMessageEvent(threadId: threadId, chatMessage: chatMessage));
+  }
+
+  void _handleAttachmentPressed() {
+    showModalBottomSheet<void>(
+      context: context,
+      builder: (BuildContext context) => SafeArea(
+        child: SizedBox(
+          height: 144,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: <Widget>[
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  _handleImageSelection();
+                },
+                child: const Align(
+                  alignment: AlignmentDirectional.centerStart,
+                  child: Text('Photo'),
+                ),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Align(
+                  alignment: AlignmentDirectional.centerStart,
+                  child: Text('Cancel'),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _handleImageSelection() async {
+    final result = await ImagePicker().pickImage(
+      imageQuality: 70,
+      maxWidth: 1440,
+      source: ImageSource.gallery,
+    );
+
+    if (result != null) {
+      final bytes = await result.readAsBytes();
+      final image = await decodeImageFromList(bytes);
+
+      final message = types.ImageMessage(
+        author: _user,
+        createdAt: DateTime.now().millisecondsSinceEpoch,
+        height: image.height.toDouble(),
+        id: const Uuid().v4(),
+        name: result.name,
+        size: bytes.length,
+        uri: result.path,
+        width: image.width.toDouble(),
+      );
+
+      // _addMessage(message);
+    }
   }
 }
