@@ -78,19 +78,11 @@ class PerplexityModel implements ModelInterface {
       final responseData = jsonDecode(response.body);
       final completedMessage = responseData['choices'][0]['message']['content'];
 
-      String correctedString = convertLatin1ToUtf8(completedMessage);
-      print(completedMessage);
       return completedMessage;
     } else {
       throw Exception(
           'Failed to send chat message: ${response.statusCode} - ${response.body}');
     }
-  }
-
-  String convertLatin1ToUtf8(String text) {
-    var bytes = latin1.encode(text);
-    var utf8Text = utf8.decode(bytes);
-    return utf8Text;
   }
 
   @override
