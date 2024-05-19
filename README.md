@@ -15,7 +15,7 @@
 
 ## Roadmap
 
-- [ ] Integration of Gemini model¹
+- [x] Integration of Gemini model¹
 - [ ] Checking the available models at the start²
 - [ ] Chat with image support³
 - [ ] Work on custom system prompts⁴
