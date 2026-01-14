@@ -86,6 +86,16 @@ class PerplexityModel implements ModelInterface {
   }
 
   @override
+  Stream<String> streamChatMessageModel({
+    required String modelName,
+    required String message,
+    required List<ChatMessage> conversationHistory,
+    required String systemPrompt,
+  }) {
+    throw UnimplementedError('Streaming not implemented for Perplexity');
+  }
+
+  @override
   Future<String> sendAudioFile(String modelName, List<int> audioData) {
     // TODO: implement sendAudioFile
     throw UnimplementedError();

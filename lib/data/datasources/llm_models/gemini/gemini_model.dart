@@ -2,13 +2,22 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:robin_ai/core/service_names.dart';
 import 'package:robin_ai/data/datasources/llm_models/ModelInterface.dart';
-import 'package:robin_ai/data/model/perplexity_message_model.dart';
 import 'package:robin_ai/domain/entities/chat_message_class.dart';
 import 'package:robin_ai/presentation/config/services/app_settings_service.dart';
-import 'package:flutter_gemini/flutter_gemini.dart';
+import 'package:google_generative_ai/google_generative_ai.dart';
 import './gemini_mapper.dart';
 
 class GeminiModelImpl implements ModelInterface {
+  Future<GenerativeModel> _createModel(
+      String apiKey, String modelName, String systemPrompt) async {
+    return GenerativeModel(
+      model: modelName,
+      apiKey: apiKey,
+      systemInstruction:
+          systemPrompt.isNotEmpty ? Content.system(systemPrompt) : null,
+    );
+  }
+
   @override
   Future<String> sendChatMessageModel({
     required String modelName,
@@ -20,44 +29,51 @@ class GeminiModelImpl implements ModelInterface {
     Map<String, String> apiKeys = await appSettingsService.readApiKeys();
     String? apiKey = apiKeys[ServiceName.gemini.name] ?? '';
 
-    // Initialize Gemini
-    Gemini.init(apiKey: apiKey);
-    final gemini = Gemini.instance;
+    if (apiKey.isEmpty) {
+      throw Exception('Gemini API Key not found');
+    }
 
-    // Map conversation history to the required format
-    List<Content> conversationHistoryMapped =
+    final model = await _createModel(apiKey, modelName, systemPrompt);
+
+    // Prepare history
+    List<Content> history =
         ChatMessageMapper.toGeminiFormat(conversationHistory);
 
-    // Define the system message
+    final chat = model.startChat(history: history);
+    final response = await chat.sendMessage(Content.text(message));
 
-    final systemMessage = Content(
-      parts: [Parts(text: systemPrompt)],
-      role: 'system',
-    );
+    return response.text ?? '';
+  }
 
-    // Define the user message
-    final userMessage = Content(
-      parts: [Parts(text: message)],
-      role: 'user',
-    );
+  @override
+  Stream<String> streamChatMessageModel({
+    required String modelName,
+    required String message,
+    required List<ChatMessage> conversationHistory,
+    required String systemPrompt,
+  }) async* {
+    AppSettingsService appSettingsService = AppSettingsService();
+    Map<String, String> apiKeys = await appSettingsService.readApiKeys();
+    String? apiKey = apiKeys[ServiceName.gemini.name] ?? '';
 
-    // Create a list of messages
-    final requestMessages = [
-      // systemMessage,
-      ...conversationHistoryMapped.reversed,
-      // userMessage,
-    ];
+    if (apiKey.isEmpty) {
+      throw Exception('Gemini API Key not found');
+    }
 
-    // Send the chat completion request
-    final chatCompletion = await gemini.chat(
-      requestMessages,
-      modelName: modelName,
-    );
+    final model = await _createModel(apiKey, modelName, systemPrompt);
 
-    // Retrieve the completed message from the output
-    final completedMessage = chatCompletion?.output;
+    // Prepare history
+    List<Content> history =
+        ConversationHistoryMapper.toGeminiFormat(conversationHistory);
 
-    return completedMessage ?? '';
+    final chat = model.startChat(history: history);
+    final response = chat.sendMessageStream(Content.text(message));
+
+    await for (final chunk in response) {
+      if (chunk.text != null) {
+        yield chunk.text!;
+      }
+    }
   }
 
   @override
@@ -78,18 +94,35 @@ class GeminiModelImpl implements ModelInterface {
     Map<String, String> apiKeys = await appSettingsService.readApiKeys();
     final apiKey = apiKeys[serviceName.name] ?? '';
 
-    // Initialize Gemini
-    Gemini.init(apiKey: apiKey);
-    final gemini = Gemini.instance;
+    if (apiKey.isEmpty) {
+      return ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-1.0-pro'];
+    }
 
     try {
-      print(
-          'Requesting models with apiKey: $apiKey and serviceName: ${serviceName.name}');
-      List<GeminiModel> models = await gemini.listModels();
-      return models.map((model) => model.name ?? '').toList();
+      final url = Uri.parse(
+          'https://generativelanguage.googleapis.com/v1/models?key=$apiKey');
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final List models = data['models'] ?? [];
+        return models
+            .where((m) => (m['supportedGenerationMethods'] as List)
+                .contains('generateContent'))
+            .map((m) => m['name'] as String)
+            .map((name) => name.replaceFirst('models/', ''))
+            .toList();
+      }
     } catch (e) {
-      print('Error in getModels: $e');
-      rethrow;
+      print('Error fetching Gemini models: $e');
     }
+
+    return ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-1.0-pro'];
+  }
+}
+
+class ConversationHistoryMapper {
+  static List<Content> toGeminiFormat(List<ChatMessage> conversationHistory) {
+    return ChatMessageMapper.toGeminiFormat(conversationHistory);
   }
 }

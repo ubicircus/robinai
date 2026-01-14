@@ -1,13 +1,14 @@
-import 'package:flutter_gemini/flutter_gemini.dart';
+import 'package:google_generative_ai/google_generative_ai.dart';
 import 'package:robin_ai/domain/entities/chat_message_class.dart';
 
 class ChatMessageMapper {
   static List<Content> toGeminiFormat(List<ChatMessage> messages) {
     return messages.map((message) {
-      return Content(
-        parts: [Parts(text: message.content)],
-        role: message.isUserMessage ? 'user' : 'model',
-      );
+      if (message.isUserMessage) {
+        return Content.text(message.content);
+      } else {
+        return Content.model([TextPart(message.content)]);
+      }
     }).toList();
   }
 

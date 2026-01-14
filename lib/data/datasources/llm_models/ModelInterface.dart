@@ -9,6 +9,13 @@ abstract class ModelInterface {
     required String systemPrompt,
   });
 
+  Stream<String> streamChatMessageModel({
+    required String modelName,
+    required String message,
+    required List<ChatMessage> conversationHistory,
+    required String systemPrompt,
+  });
+
   Future<String> sendAudioFile(
     String modelName,
     List<int> audioData,

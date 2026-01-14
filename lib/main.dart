@@ -20,9 +20,9 @@ import 'package:robin_ai/presentation/config/context/app_settings_context_config
 import 'package:robin_ai/presentation/config/context/model/context_model.dart';
 import 'package:robin_ai/presentation/config/services/app_settings_service.dart';
 import 'package:robin_ai/presentation/config/services/model/service_model.dart';
-import 'package:robin_ai/presentation/pages/chat_page/chat_page.dart';
 import 'package:robin_ai/presentation/pages/settings_page.dart';
 import 'package:robin_ai/presentation/genui/gen_ui_test_page.dart';
+import 'package:robin_ai/presentation/pages/dashboard_page.dart';
 
 // import 'presentation/provider/chat_provider.dart';
 // import 'presentation/provider/theme_provider.dart';
@@ -151,7 +151,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
               bodyMedium: TextStyle(color: Colors.teal.shade600),
             ),
       ),
-      home: const GenUiTestPage(),
+      home: const DashboardPage(),
       routes: {
         '/settings': (context) => SettingsPage(),
         '/genui-test': (context) => const GenUiTestPage(),

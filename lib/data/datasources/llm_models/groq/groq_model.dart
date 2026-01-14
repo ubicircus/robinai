@@ -86,6 +86,16 @@ class GroqModel implements ModelInterface {
     }
   }
 
+  @override
+  Stream<String> streamChatMessageModel({
+    required String modelName,
+    required String message,
+    required List<ChatMessage> conversationHistory,
+    required String systemPrompt,
+  }) {
+    throw UnimplementedError('Streaming not implemented for Groq');
+  }
+
   String convertLatin1ToUtf8(String inStr) {
     // Decode from Latin-1
     List<int> latin1Bytes = latin1.encode(inStr);

@@ -51,6 +51,16 @@ class DyrektywaModel implements ModelInterface {
   }
 
   @override
+  Stream<String> streamChatMessageModel({
+    required String modelName,
+    required String message,
+    required List<ChatMessage> conversationHistory,
+    required String systemPrompt,
+  }) {
+    throw UnimplementedError('Streaming not implemented for Dyrektywa');
+  }
+
+  @override
   Future<String> sendAudioFile(String modelName, List<int> audioData) {
     // implement according to your backend logic for audio files
     throw UnimplementedError();

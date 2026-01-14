@@ -61,6 +61,58 @@ class OpenAIModel implements ModelInterface {
   }
 
   @override
+  Stream<String> streamChatMessageModel({
+    required String modelName,
+    required String message,
+    required List<ChatMessage> conversationHistory,
+    required String systemPrompt,
+  }) async* {
+    AppSettingsService appSettingsService = AppSettingsService();
+    Map<String, String> apiKeys = await appSettingsService.readApiKeys();
+    OpenAI.apiKey = apiKeys[ServiceName.openai.name] ?? '';
+    final openai = OpenAI.instance;
+
+    List<OpenAIChatCompletionChoiceMessageModel> conversationHistoryMapped =
+        ChatMessageMapper.toModelFormat(conversationHistory);
+
+    final systemMessage = OpenAIChatCompletionChoiceMessageModel(
+      content: [
+        OpenAIChatCompletionChoiceMessageContentItemModel.text(systemPrompt),
+      ],
+      role: OpenAIChatMessageRole.system,
+    );
+
+    final userMessage = OpenAIChatCompletionChoiceMessageModel(
+      content: [
+        OpenAIChatCompletionChoiceMessageContentItemModel.text(message),
+      ],
+      role: OpenAIChatMessageRole.user,
+    );
+
+    final requestMessages = [
+      ...conversationHistoryMapped,
+      systemMessage,
+      userMessage
+    ];
+
+    final chatStream = openai.chat.createStream(
+      model: modelName,
+      messages: requestMessages,
+      temperature: 0.9,
+      maxTokens: 500,
+    );
+
+    await for (final response in chatStream) {
+      final text = response.choices.first.delta.content
+          ?.map((item) => item?.text)
+          .join('');
+      if (text != null) {
+        yield text;
+      }
+    }
+  }
+
+  @override
   Future<String> sendAudioFile(String modelName, List<int> audioData) {
     // Handle the case where sending audio files is not supported by the model
     // You can return null or throw an exception depending on your needs

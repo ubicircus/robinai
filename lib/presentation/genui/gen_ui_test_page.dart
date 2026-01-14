@@ -2,6 +2,9 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:genui/genui.dart';
+import '../../core/service_names.dart';
+import '../../data/datasources/gen_ui_content_generator.dart';
+import '../../data/datasources/llm_models/gemini/gemini_model.dart';
 import 'catalog.dart';
 
 class GenUiTestPage extends StatefulWidget {
@@ -13,16 +16,70 @@ class GenUiTestPage extends StatefulWidget {
 
 class _GenUiTestPageState extends State<GenUiTestPage> {
   late final A2uiMessageProcessor _processor;
-  late final GenUiConversation _conversation;
+  late GenUiConversation _conversation;
+  bool _useRealLlm = false;
+  final _textController =
+      TextEditingController(text: 'Show me the prototype widgets');
+  final _modelController = TextEditingController(text: 'gemini-1.5-flash');
+  List<String> _availableModels = ['gemini-1.5-flash'];
+  bool _isLoadingModels = false;
 
   @override
   void initState() {
     super.initState();
     _processor = A2uiMessageProcessor(catalogs: [robinCatalog]);
+    _initConversation();
+    _fetchModels();
+  }
+
+  Future<void> _fetchModels() async {
+    setState(() => _isLoadingModels = true);
+    try {
+      final models =
+          await GeminiModelImpl().getModels(serviceName: ServiceName.gemini);
+      if (mounted) {
+        setState(() {
+          _availableModels = models;
+          if (!_availableModels.contains(_modelController.text)) {
+            _modelController.text = _availableModels.isNotEmpty
+                ? _availableModels.first
+                : 'gemini-1.5-flash';
+          }
+        });
+        // Re-init conversation if we switched to a real model but it wasn't in the list
+        if (_useRealLlm) _initConversation();
+      }
+    } catch (e) {
+      debugPrint('Error fetching models: $e');
+    } finally {
+      if (mounted) setState(() => _isLoadingModels = false);
+    }
+  }
+
+  void _initConversation() {
+    final ContentGenerator generator = _useRealLlm
+        ? RealGenUiContentGenerator(
+            model: GeminiModelImpl(),
+            serviceName: ServiceName.gemini,
+            modelName: _modelController.text, // Use the controller value
+            systemPrompt:
+                'You are a helpful assistant. If the user asks for GenUI or components, include the string "COMPONENT_TRIGGER:INFO_CARD" in your response.',
+          )
+        : MockContentGenerator();
+
     _conversation = GenUiConversation(
       a2uiMessageProcessor: _processor,
-      contentGenerator: MockContentGenerator(),
+      contentGenerator: generator,
     );
+  }
+
+  void _toggleGenerator(bool? value) {
+    if (value == null) return;
+    setState(() {
+      _useRealLlm = value;
+      _conversation.dispose();
+      _initConversation();
+    });
   }
 
   @override
@@ -81,13 +138,69 @@ class _GenUiTestPageState extends State<GenUiTestPage> {
             ),
           ),
           Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: Row(
+              children: [
+                const Text('Use Real LLM (Gemini):'),
+                Switch(
+                  value: _useRealLlm,
+                  onChanged: _toggleGenerator,
+                ),
+                const SizedBox(width: 8),
+                _isLoadingModels
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2))
+                    : Expanded(
+                        child: DropdownButton<String>(
+                          value:
+                              _availableModels.contains(_modelController.text)
+                                  ? _modelController.text
+                                  : _availableModels.first,
+                          isExpanded: true,
+                          items: _availableModels.map((m) {
+                            return DropdownMenuItem(value: m, child: Text(m));
+                          }).toList(),
+                          onChanged: (val) {
+                            if (val != null) {
+                              setState(() {
+                                _modelController.text = val;
+                                _initConversation();
+                              });
+                            }
+                          },
+                        ),
+                      ),
+                IconButton(
+                  icon: const Icon(Icons.refresh),
+                  onPressed: _fetchModels,
+                ),
+              ],
+            ),
+          ),
+          Padding(
             padding: const EdgeInsets.all(8.0),
-            child: ElevatedButton(
-              onPressed: () {
-                _conversation.sendRequest(
-                    UserMessage.text('Show me the prototype widgets'));
-              },
-              child: const Text('Trigger Mock Response'),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _textController,
+                    decoration: const InputDecoration(
+                      hintText: 'Enter prompt...',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                ElevatedButton(
+                  onPressed: () {
+                    _conversation
+                        .sendRequest(UserMessage.text(_textController.text));
+                  },
+                  child: const Text('Send'),
+                ),
+              ],
             ),
           ),
         ],
