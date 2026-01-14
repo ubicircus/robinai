@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -23,13 +22,12 @@ import 'package:robin_ai/presentation/config/services/app_settings_service.dart'
 import 'package:robin_ai/presentation/config/services/model/service_model.dart';
 import 'package:robin_ai/presentation/pages/chat_page/chat_page.dart';
 import 'package:robin_ai/presentation/pages/settings_page.dart';
+import 'package:robin_ai/presentation/genui/gen_ui_test_page.dart';
 
 // import 'presentation/provider/chat_provider.dart';
-import 'presentation/pages/main_page.dart';
 // import 'presentation/provider/theme_provider.dart';
 import 'domain/usecases/messages/send_message.dart';
 // import 'domain/usecases/messages/fetch_all_messages.dart';
-import 'domain/entities/app_themes.dart';
 import 'data/model/chat_message_local_model.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'presentation/bloc/chat_bloc.dart';
@@ -38,7 +36,7 @@ import 'data/datasources/chat_local.dart';
 void main() async {
   // Ensure initialized.
   WidgetsFlutterBinding.ensureInitialized();
-  final FlutterSecureStorage secureStorage = const FlutterSecureStorage();
+  const secureStorage = FlutterSecureStorage();
   var containsEncryptionKey =
       await secureStorage.containsKey(key: 'encryptionKey');
   if (!containsEncryptionKey) {
@@ -94,11 +92,12 @@ void main() async {
       getThreadListUseCase: getThreadListUseCase,
       getModelsUseCase: getModelsUseCase,
     ),
-    child: MyApp(),
+    child: const MyApp(),
   ));
 }
 
 class MyApp extends StatefulWidget {
+  const MyApp({super.key});
   @override
   State<MyApp> createState() => _MyAppState();
 }
@@ -148,13 +147,14 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.teal),
         visualDensity: VisualDensity.adaptivePlatformDensity,
         textTheme: ThemeData.light().textTheme.copyWith(
-              bodyText1: TextStyle(color: Colors.teal.shade600),
-              bodyText2: TextStyle(color: Colors.teal.shade600),
+              bodyLarge: TextStyle(color: Colors.teal.shade600),
+              bodyMedium: TextStyle(color: Colors.teal.shade600),
             ),
       ),
-      home: ChatPage(),
+      home: const GenUiTestPage(),
       routes: {
         '/settings': (context) => SettingsPage(),
+        '/genui-test': (context) => const GenUiTestPage(),
       },
     );
   }

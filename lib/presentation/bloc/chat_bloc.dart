@@ -1,5 +1,4 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_chat_ui/flutter_chat_ui.dart';
 import 'package:robin_ai/core/service_names.dart';
 import 'package:robin_ai/data/repository/chat_message_repository.dart';
 import 'package:robin_ai/domain/entities/chat_message_class.dart';

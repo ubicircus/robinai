@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
-import 'package:flutter_chat_ui/flutter_chat_ui.dart' hide ChatState;
+import 'package:flutter_chat_ui/flutter_chat_ui.dart'
+    hide ChatState, ChatMessage;
 import 'package:robin_ai/core/constants.dart';
 import 'package:robin_ai/domain/entities/chat_message_class.dart';
 import 'package:robin_ai/presentation/bloc/chat_bloc.dart';
@@ -29,6 +30,7 @@ class _ChatPageChatWidgetState extends State<ChatPageChatWidget> {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<ChatBloc, ChatState>(builder: (context, state) {
+/*
       return Chat(
         messages: _mapChatMessages(state.thread!.messages),
         onSendPressed: (message) =>
@@ -73,6 +75,8 @@ class _ChatPageChatWidgetState extends State<ChatPageChatWidget> {
           inputMargin: const EdgeInsets.only(bottom: 10),
         ),
       );
+*/
+      return const Center(child: Text("Chat UI disabled to focus on GenUI"));
     });
   }
 

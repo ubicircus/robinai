@@ -50,7 +50,7 @@ class DrawerChatPage extends StatelessWidget {
                                               .content, // Assuming `content` is the attribute for message content
                                           style: Theme.of(context)
                                               .textTheme
-                                              .bodyText2,
+                                              .bodyMedium,
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
                                         ),
@@ -58,26 +58,26 @@ class DrawerChatPage extends StatelessWidget {
                                           "${DateFormat('HH:mm').format(lastMessage.timestamp)} ${DateFormat('dd MMM yy').format(lastMessage.timestamp)}",
                                           style: Theme.of(context)
                                               .textTheme
-                                              .caption,
+                                              .bodySmall,
                                         ),
                                       ],
                                     )
-                                  : Text("No Messages"),
+                                  : const Text("No Messages"),
                             ),
                           );
                         },
                       ),
               ),
-              Divider(),
+              const Divider(),
               ListTile(
-                title: Text("Settings"),
-                leading: Icon(Icons.settings),
+                title: const Text("Settings"),
+                leading: const Icon(Icons.settings),
                 onTap: () async {
                   await Navigator.pushNamed(context, '/settings');
                   onSettingsUpdated();
                 },
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
             ],
           );
         },
