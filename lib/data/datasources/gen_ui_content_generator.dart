@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:genui/genui.dart';
 import '../../core/service_names.dart';
@@ -81,9 +82,10 @@ class RealGenUiContentGenerator implements ContentGenerator {
 
       await for (final chunk in stream) {
         buffer += chunk;
-        _textResponseController.add(chunk);
-        _processBuffer(buffer);
+        // logic moved to post-stream processing to handle JSON
       }
+
+      _processJsonBuffer(buffer);
     } catch (e) {
       _errorController
           .add(ContentGeneratorError(e.toString(), StackTrace.current));
@@ -98,38 +100,81 @@ class RealGenUiContentGenerator implements ContentGenerator {
     return '';
   }
 
-  void _processBuffer(String currentContent) {
-    // This is a placeholder for a more sophisticated parser
-    // For now, we'll look for specific patterns to trigger GenUI updates
-    // In a production app, you'd likely use LLM Tool Calling (Function Calling)
-    // to get structured A2UI messages directly from the model.
+  void _processJsonBuffer(String buffer) {
+    try {
+      // Clean up markdown code blocks if present
+      String jsonStr = buffer.trim();
+      if (jsonStr.startsWith('```json')) {
+        jsonStr = jsonStr.substring(7);
+      }
+      if (jsonStr.startsWith('```')) {
+        jsonStr = jsonStr.substring(3);
+      }
+      if (jsonStr.endsWith('```')) {
+        jsonStr = jsonStr.substring(0, jsonStr.length - 3);
+      }
 
-    // Example: If the model output contains a specific trigger for our prototype
-    if (currentContent.contains('COMPONENT_TRIGGER:INFO_CARD')) {
-      _emitInfoCard();
+      final data = json.decode(jsonStr);
+
+      // 1. Emit Text
+      if (data['text'] != null) {
+        _textResponseController.add(data['text']);
+      }
+
+      // 2. Emit UI Components
+      if (data['ui_components'] != null) {
+        final List components = data['ui_components'];
+        if (components.isNotEmpty) {
+          _emitComponents(components);
+        }
+      }
+    } catch (e) {
+      // Fallback: If JSON parsing fails, just emit the raw buffer as text
+      // This handles cases where the model refuses to output JSON
+      _textResponseController.add(buffer);
+      debugPrint('GenUI JSON parsing error: $e');
     }
   }
 
-  void _emitInfoCard() {
-    const surfaceId = 'dynamic_surface';
-    _a2uiMessageController.add(const SurfaceUpdate(
-      surfaceId: surfaceId,
-      components: [
-        Component(
-          id: 'info_live',
+  void _emitComponents(List componentsData) {
+    final uniqueId = DateTime.now().millisecondsSinceEpoch;
+    final surfaceId = 'dynamic_surface_$uniqueId';
+    debugPrint('Generating GenUI with SurfaceID: $surfaceId');
+    final List<Component> components = [];
+    final List<String> componentIds = [];
+
+    for (var i = 0; i < componentsData.length; i++) {
+      final comp = componentsData[i];
+      final type = comp['type'];
+      final props = comp['props'];
+      final id = 'comp_${uniqueId}_$i';
+
+      if (type != null && props != null) {
+        components.add(Component(
+          id: id,
           componentProperties: {
-            'InfoCard': {
-              'title': 'Live from LLM',
-              'content': 'This card was triggered by a real LLM stream!',
-              'icon': 'check',
-            }
+            type: props,
           },
-        ),
-      ],
-    ));
-    _a2uiMessageController.add(const BeginRendering(
+        ));
+        componentIds.add(id);
+      }
+    }
+
+    // Add a Column layout to hold them
+    components.add(Component(id: 'layout_root_$uniqueId', componentProperties: {
+      'Column': {
+        'children': componentIds,
+      }
+    }));
+
+    _a2uiMessageController.add(SurfaceUpdate(
       surfaceId: surfaceId,
-      root: 'info_live',
+      components: components,
+    ));
+
+    _a2uiMessageController.add(BeginRendering(
+      surfaceId: surfaceId,
+      root: 'layout_root_$uniqueId',
     ));
   }
 

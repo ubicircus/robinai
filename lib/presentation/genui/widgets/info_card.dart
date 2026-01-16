@@ -27,15 +27,18 @@ class InfoCard extends StatelessWidget {
             Row(
               children: [
                 if (icon != null) ...[
-                  Icon(_getIconData(icon!), color: Theme.of(context).primaryColor),
+                  Icon(_getIconData(icon!),
+                      color: Theme.of(context).primaryColor),
                   const SizedBox(width: 8),
                 ],
-                Text(
-                  title,
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: Theme.of(context).primaryColor,
-                      ),
+                Expanded(
+                  child: Text(
+                    title,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).primaryColor,
+                        ),
+                  ),
                 ),
               ],
             ),

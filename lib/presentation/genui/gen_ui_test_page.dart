@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:genui/genui.dart';
 import '../../core/service_names.dart';
 import '../../data/datasources/gen_ui_content_generator.dart';
+import '../../data/datasources/genui/genui_system_prompt.dart';
 import '../../data/datasources/llm_models/gemini/gemini_model.dart';
 import 'catalog.dart';
 
@@ -15,7 +16,7 @@ class GenUiTestPage extends StatefulWidget {
 }
 
 class _GenUiTestPageState extends State<GenUiTestPage> {
-  late final A2uiMessageProcessor _processor;
+  late A2uiMessageProcessor _processor;
   late GenUiConversation _conversation;
   bool _useRealLlm = false;
   final _textController =
@@ -27,7 +28,6 @@ class _GenUiTestPageState extends State<GenUiTestPage> {
   @override
   void initState() {
     super.initState();
-    _processor = A2uiMessageProcessor(catalogs: [robinCatalog]);
     _initConversation();
     _fetchModels();
   }
@@ -57,13 +57,13 @@ class _GenUiTestPageState extends State<GenUiTestPage> {
   }
 
   void _initConversation() {
+    _processor = A2uiMessageProcessor(catalogs: [robinCatalog]);
     final ContentGenerator generator = _useRealLlm
         ? RealGenUiContentGenerator(
             model: GeminiModelImpl(),
             serviceName: ServiceName.gemini,
             modelName: _modelController.text, // Use the controller value
-            systemPrompt:
-                'You are a helpful assistant. If the user asks for GenUI or components, include the string "COMPONENT_TRIGGER:INFO_CARD" in your response.',
+            systemPrompt: genUiSystemPrompt,
           )
         : MockContentGenerator();
 
@@ -244,15 +244,16 @@ class MockContentGenerator implements ContentGenerator {
     _textResponseController.add('Here are the prototype widgets...');
 
     await Future.delayed(const Duration(seconds: 1));
-    const surfaceId = 'prototype_surface';
+    final uniqueId = DateTime.now().millisecondsSinceEpoch;
+    final surfaceId = 'prototype_surface_$uniqueId';
     debugPrint('Sending A2UI messages for $surfaceId');
 
     // 1. Cache ALL components FIRST
-    _a2uiMessageController.add(const SurfaceUpdate(
+    _a2uiMessageController.add(SurfaceUpdate(
       surfaceId: surfaceId,
       components: [
         Component(
-          id: 'info_1',
+          id: 'info_$uniqueId',
           componentProperties: {
             'InfoCard': {
               'title': 'Robin AI',
@@ -262,7 +263,7 @@ class MockContentGenerator implements ContentGenerator {
           },
         ),
         Component(
-          id: 'badge_1',
+          id: 'badge_$uniqueId',
           componentProperties: {
             'StatusBadge': {
               'label': 'Live Status',
@@ -271,10 +272,10 @@ class MockContentGenerator implements ContentGenerator {
           },
         ),
         Component(
-          id: 'layout_1',
+          id: 'layout_$uniqueId',
           componentProperties: {
             'Column': {
-              'children': ['info_1', 'badge_1'],
+              'children': ['info_$uniqueId', 'badge_$uniqueId'],
             }
           },
         ),
@@ -282,9 +283,9 @@ class MockContentGenerator implements ContentGenerator {
     ));
 
     // 2. Then Begin Rendering with the combined layout as root
-    _a2uiMessageController.add(const BeginRendering(
+    _a2uiMessageController.add(BeginRendering(
       surfaceId: surfaceId,
-      root: 'layout_1',
+      root: 'layout_$uniqueId',
     ));
     debugPrint('A2UI messages sent');
 
