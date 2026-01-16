@@ -84,14 +84,19 @@ void main() async {
   final getModelsUseCase = GetModelsUseCase(modelsRepository: modelsRepository);
 
   runApp(BlocProvider<ChatBloc>(
-    create: (context) => ChatBloc(
-      sendMessageUseCase: sendMessageUseCase,
-      chatRepository: chatRepository,
-      getLastThreadIdUseCase: getLastThreadIdUseCase,
-      getThreadDetailsByIdUseCase: getThreadDetailsByIdUseCase,
-      getThreadListUseCase: getThreadListUseCase,
-      getModelsUseCase: getModelsUseCase,
-    ),
+    create: (context) {
+      final bloc = ChatBloc(
+        sendMessageUseCase: sendMessageUseCase,
+        chatRepository: chatRepository,
+        getLastThreadIdUseCase: getLastThreadIdUseCase,
+        getThreadDetailsByIdUseCase: getThreadDetailsByIdUseCase,
+        getThreadListUseCase: getThreadListUseCase,
+        getModelsUseCase: getModelsUseCase,
+      );
+      // Dispatch InitializeAppEvent to detect service provider and load models
+      bloc.add(InitializeAppEvent());
+      return bloc;
+    },
     child: const MyApp(),
   ));
 }

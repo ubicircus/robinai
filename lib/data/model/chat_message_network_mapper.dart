@@ -10,6 +10,7 @@ class ChatMessageMapper {
       id: message.id,
       content: message.content,
       timestamp: message.timestamp,
+      uiComponents: message.uiComponents,
     );
   }
 
@@ -20,6 +21,7 @@ class ChatMessageMapper {
           false, // from network response is always from model not from user
       content: networkModel.content,
       timestamp: networkModel.timestamp,
+      uiComponents: networkModel.uiComponents,
     );
   }
 

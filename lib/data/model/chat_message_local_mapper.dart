@@ -9,6 +9,7 @@ class ChatMessageLocalMapper {
       content: message.content,
       isUserMessage: message.isUserMessage,
       timestamp: message.timestamp,
+      uiComponents: message.uiComponents,
     );
   }
 
@@ -18,6 +19,7 @@ class ChatMessageLocalMapper {
       content: localModel.content,
       isUserMessage: localModel.isUserMessage,
       timestamp: localModel.timestamp,
+      uiComponents: localModel.uiComponents,
     );
   }
 }

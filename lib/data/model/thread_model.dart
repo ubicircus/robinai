@@ -34,10 +34,14 @@ class Message extends HiveObject {
   @HiveField(3)
   final DateTime timestamp;
 
+  @HiveField(4)
+  final Map<String, dynamic>? uiComponents;
+
   Message({
     required this.messageID,
     required this.content,
     required this.isUserMessage,
     required this.timestamp,
+    this.uiComponents,
   });
 }

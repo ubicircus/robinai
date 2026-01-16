@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
-import 'package:flutter_chat_ui/flutter_chat_ui.dart'
-    hide ChatState, ChatMessage;
+import 'package:flutter_markdown/flutter_markdown.dart';
+
 import 'package:robin_ai/core/constants.dart';
 import 'package:robin_ai/domain/entities/chat_message_class.dart';
 import 'package:robin_ai/presentation/bloc/chat_bloc.dart';
 import 'package:uuid/uuid.dart';
 import 'package:image_picker/image_picker.dart';
+import '../../genui/widgets/gen_ui_history_widget.dart';
 
 class ChatPageChatWidget extends StatefulWidget {
   const ChatPageChatWidget({super.key});
@@ -17,95 +17,163 @@ class ChatPageChatWidget extends StatefulWidget {
 }
 
 class _ChatPageChatWidgetState extends State<ChatPageChatWidget> {
-  final _user = const types.User(
-      id: '82091008-a484-4a89-ae75-a22bf8d6f3ac',
-      firstName: 'user',
-      lastName: 'user');
-
-  final _bot = const types.User(
-      id: '82091008-a484-4a89-ae75-a22bf8d6f3bh',
-      firstName: 'bot',
-      lastName: 'bot');
+  final TextEditingController _textController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<ChatBloc, ChatState>(builder: (context, state) {
-/*
-      return Chat(
-        messages: _mapChatMessages(state.thread!.messages),
-        onSendPressed: (message) =>
-            _handleSendMessage(context, message, state.thread!.id),
-        showUserNames: true,
-        onAttachmentPressed: _handleAttachmentPressed,
-        user: _user,
-        theme: DefaultChatTheme(
-          primaryColor: Colors.teal,
-          backgroundColor: AppColors.lightSage,
-          inputBackgroundColor: Colors.white,
+      if (state.thread == null) {
+        return const Center(child: Text("Select a conversation"));
+      }
 
-          inputContainerDecoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(20.0),
-                topRight: Radius.circular(20.0),
-                bottomLeft: Radius.circular(20.0),
-                bottomRight: Radius.circular(20.0)),
-            border: Border(
-              top: BorderSide(
-                color: Colors.teal.shade100,
-                width: 1.0,
-              ),
-              bottom: BorderSide(
-                color: Colors.teal.shade100,
-                width: 1.0,
-              ),
+      final messages = state.thread!.messages.toList();
+
+      return Column(
+        children: [
+          Expanded(
+            child: ListView.builder(
+              reverse: true,
+              itemCount: messages.length,
+              itemBuilder: (context, index) {
+                final message = messages[index];
+                return _buildMessageItem(message);
+              },
             ),
           ),
-          inputTextColor: Colors.black,
-          dateDividerTextStyle: TextStyle(
-            color: Colors.teal.shade600,
-          ),
-          receivedMessageBodyTextStyle: const TextStyle(
-            color: Colors.black,
-          ),
-          sentMessageBodyTextStyle: const TextStyle(
-            color: Colors.white,
-          ),
-          // inputPadding: const EdgeInsets.only(bottom: 30),
-          inputMargin: const EdgeInsets.only(bottom: 10),
-        ),
+          _buildInputArea(state.thread!.id),
+        ],
       );
-*/
-      return const Center(child: Text("Chat UI disabled to focus on GenUI"));
     });
   }
 
-  List<types.Message> _mapChatMessages(List<ChatMessage> messages) {
-    return messages.map((chatMessage) {
-      if (chatMessage.isUserMessage) {
-        return types.TextMessage(
-          author: _user,
-          createdAt: chatMessage.timestamp.millisecondsSinceEpoch,
-          id: chatMessage.id,
-          text: chatMessage.content,
-        );
-      } else {
-        return types.TextMessage(
-          author: _bot,
-          createdAt: chatMessage.timestamp.millisecondsSinceEpoch,
-          id: chatMessage.id,
-          text: chatMessage.content,
-        );
-      }
-    }).toList();
+  Widget _buildMessageItem(ChatMessage message) {
+    final isUser = message.isUserMessage;
+    // Check key "ui_components" or "uiComponents" depending on how map was saved,
+    // but ChatMessage entity has field `uiComponents`.
+    final hasGenUi =
+        message.uiComponents != null && message.uiComponents!.isNotEmpty;
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      child: Column(
+        crossAxisAlignment:
+            isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+        children: [
+          // Text Bubble
+          if (message.content.isNotEmpty)
+            Container(
+              constraints: BoxConstraints(
+                  maxWidth: MediaQuery.of(context).size.width * 0.75),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              decoration: BoxDecoration(
+                color: isUser ? Colors.teal : AppColors.lightSage,
+                borderRadius: BorderRadius.only(
+                  topLeft: const Radius.circular(20),
+                  topRight: const Radius.circular(20),
+                  bottomLeft: isUser
+                      ? const Radius.circular(20)
+                      : const Radius.circular(0),
+                  bottomRight: isUser
+                      ? const Radius.circular(0)
+                      : const Radius.circular(20),
+                ),
+              ),
+              child: MarkdownBody(
+                data: message.content,
+                selectable: true,
+                styleSheet: MarkdownStyleSheet(
+                  p: TextStyle(
+                    color: isUser ? Colors.white : Colors.black,
+                    fontSize: 16,
+                  ),
+                  strong: TextStyle(
+                      color: isUser ? Colors.white : Colors.black,
+                      fontWeight: FontWeight.bold),
+                  code: TextStyle(
+                    color: isUser ? Colors.white : Colors.black,
+                    backgroundColor: Colors.transparent,
+                    fontFamily: 'Courier',
+                  ),
+                  codeblockDecoration: BoxDecoration(
+                    color: isUser ? Colors.black26 : Colors.black12,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  blockquoteDecoration: BoxDecoration(
+                    color: isUser ? Colors.black26 : Colors.black12,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  listBullet: TextStyle(
+                    color: isUser ? Colors.white : Colors.black,
+                  ),
+                ),
+              ),
+            ),
+
+          // GenUI Component
+          if (hasGenUi)
+            Container(
+              margin: const EdgeInsets.only(top: 8),
+              constraints: BoxConstraints(
+                  maxWidth: MediaQuery.of(context).size.width * 0.9),
+              child: GenUiHistoryWidget(uiComponents: message.uiComponents!),
+            ),
+        ],
+      ),
+    );
   }
 
-  void _handleSendMessage(
-      BuildContext context, types.PartialText message, String threadId) {
+  Widget _buildInputArea(String threadId) {
+    return Container(
+      padding: const EdgeInsets.all(8.0),
+      color: Colors.white,
+      child: SafeArea(
+        child: Row(
+          children: [
+            IconButton(
+              icon: const Icon(Icons.attachment),
+              onPressed: _handleAttachmentPressed,
+              color: Colors.teal,
+            ),
+            Expanded(
+              child: TextField(
+                controller: _textController,
+                decoration: InputDecoration(
+                  hintText: 'Type a message',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(20),
+                    borderSide: BorderSide.none,
+                  ),
+                  filled: true,
+                  fillColor: Colors.grey[100],
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                ),
+                minLines: 1,
+                maxLines: 5,
+              ),
+            ),
+            const SizedBox(width: 8),
+            IconButton(
+              icon: const Icon(Icons.send),
+              onPressed: () {
+                if (_textController.text.trim().isNotEmpty) {
+                  _handleSendMessage(context, _textController.text, threadId);
+                  _textController.clear();
+                }
+              },
+              color: Colors.teal,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _handleSendMessage(BuildContext context, String text, String threadId) {
     print(threadId);
     final chatMessage = ChatMessage(
       id: const Uuid().v4(),
-      content: message.text,
+      content: text,
       isUserMessage: true,
       timestamp: DateTime.now(),
     );
@@ -156,21 +224,9 @@ class _ChatPageChatWidgetState extends State<ChatPageChatWidget> {
     );
 
     if (result != null) {
-      final bytes = await result.readAsBytes();
-      final image = await decodeImageFromList(bytes);
-
-      final message = types.ImageMessage(
-        author: _user,
-        createdAt: DateTime.now().millisecondsSinceEpoch,
-        height: image.height.toDouble(),
-        id: const Uuid().v4(),
-        name: result.name,
-        size: bytes.length,
-        uri: result.path,
-        width: image.width.toDouble(),
-      );
-
-      // _addMessage(message);
+      // Logic for image handling can be re-implemented if backend supports it
+      // For now we just log it as we moved away from fcu types for main logic
+      print("Image selected: ${result.path}");
     }
   }
 }

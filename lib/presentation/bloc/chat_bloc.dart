@@ -9,6 +9,7 @@ import 'package:robin_ai/domain/usecases/threads/get_last_thread_id_usecase.dart
 import 'package:robin_ai/domain/usecases/threads/get_thread_details_by_id_usecase.dart';
 import 'package:robin_ai/domain/usecases/threads/get_threads_list_usecase.dart';
 import 'package:robin_ai/presentation/config/context/model/context_model.dart';
+import 'package:robin_ai/presentation/config/services/app_settings_service.dart';
 import 'package:uuid/uuid.dart';
 
 part 'chat_event.dart';
@@ -70,7 +71,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
           userMessage,
           state.serviceName,
           state.modelName,
-          updatedThread.messages,
+          updatedThread.messages.reversed.toList(),
           state.context);
 
       // Add the response message to the thread
@@ -97,23 +98,62 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   void _handleInitializeApp(
       InitializeAppEvent event, Emitter<ChatState> emit) async {
     try {
-      // final lastThreadId = await getLastThreadIdUseCase.call();
-      // print('Last Thread ID: $lastThreadId');
+      print('🚀 InitializeAppEvent: Starting app initialization...');
 
-      // final lastThread =
-      //     await getThreadDetailsByIdUseCase.call(threadId: lastThreadId);
-      // print('Last Thread Details: $lastThread');
+      // Get available service providers (those with API keys)
+      final appSettingsService = AppSettingsService();
+      final apiKeys = await appSettingsService.readApiKeys();
 
-      // final updatedThread = Thread(
-      //     id: lastThread.id,
-      //     messages: lastThread.messages,
-      //     name: lastThread.name);
+      print('🔑 API Keys found:');
+      apiKeys.forEach((key, value) {
+        print('  - $key: ${value.isNotEmpty ? "✅ PRESENT" : "❌ EMPTY"}');
+      });
 
-      // emit(state.copyWith(thread: updatedThread)); // Update with current thread
-      final modelsAvailable = await getModelsUseCase.call(state.serviceName);
-      emit(state.copyWith(modelsAvailable: modelsAvailable));
+      // Determine first available service provider
+      // Priority: gemini > groq > perplexity > dyrektywa > openai
+      final preferredOrder = [
+        ServiceName.gemini,
+        ServiceName.groq,
+        ServiceName.perplexity,
+        ServiceName.dyrektywa,
+        ServiceName.openai,
+      ];
+
+      ServiceName? availableService;
+      for (final service in preferredOrder) {
+        if (apiKeys[service.name]?.isNotEmpty ?? false) {
+          availableService = service;
+          print('✅ Selected service provider: ${service.name}');
+          break;
+        }
+      }
+
+      // Use found service or keep current
+      final serviceName = availableService ?? state.serviceName;
+
+      if (availableService == null) {
+        print('⚠️ No API keys found, using default: ${state.serviceName.name}');
+      }
+
+      // Fetch models for the selected service
+      print('📡 Fetching models for: ${serviceName.name}');
+      final modelsAvailable = await getModelsUseCase.call(serviceName);
+      print('📋 Models received: $modelsAvailable');
+
+      final selectedModel =
+          modelsAvailable.isNotEmpty ? modelsAvailable.first : state.modelName;
+      print('🎯 Selected model: $selectedModel');
+
+      emit(state.copyWith(
+        serviceName: serviceName,
+        modelsAvailable: modelsAvailable,
+        modelName: selectedModel,
+      ));
+
+      print('✅ Initialization complete!');
     } catch (e) {
       // Handle error during app initialization
+      print('❌ Error during initialization: $e');
       rethrow;
     }
   }

@@ -61,13 +61,14 @@ class MessageAdapter extends TypeAdapter<Message> {
       content: fields[1] as String,
       isUserMessage: fields[2] as bool,
       timestamp: fields[3] as DateTime,
+      uiComponents: (fields[4] as Map?)?.cast<String, dynamic>(),
     );
   }
 
   @override
   void write(BinaryWriter writer, Message obj) {
     writer
-      ..writeByte(4)
+      ..writeByte(5)
       ..writeByte(0)
       ..write(obj.messageID)
       ..writeByte(1)
@@ -75,7 +76,9 @@ class MessageAdapter extends TypeAdapter<Message> {
       ..writeByte(2)
       ..write(obj.isUserMessage)
       ..writeByte(3)
-      ..write(obj.timestamp);
+      ..write(obj.timestamp)
+      ..writeByte(4)
+      ..write(obj.uiComponents);
   }
 
   @override

@@ -6,11 +6,13 @@
 import 'dart:async' as _i3;
 
 import 'package:mockito/mockito.dart' as _i1;
-import 'package:mockito/src/dummies.dart' as _i7;
+import 'package:mockito/src/dummies.dart' as _i8;
 import 'package:robin_ai/core/service_names.dart' as _i5;
 import 'package:robin_ai/data/datasources/chat_network.dart' as _i2;
 import 'package:robin_ai/data/model/chat_message_network_model.dart' as _i4;
 import 'package:robin_ai/domain/entities/chat_message_class.dart' as _i6;
+import 'package:robin_ai/presentation/config/context/model/context_model.dart'
+    as _i7;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -40,6 +42,7 @@ class MockChatNetworkDataSource extends _i1.Mock
     _i5.ServiceName? serviceName,
     String? modelName,
     List<_i6.ChatMessage>? conversationHistory,
+    _i7.ContextModel? context,
   ) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -49,9 +52,10 @@ class MockChatNetworkDataSource extends _i1.Mock
             serviceName,
             modelName,
             conversationHistory,
+            context,
           ],
         ),
-        returnValue: _i3.Future<String>.value(_i7.dummyValue<String>(
+        returnValue: _i3.Future<String>.value(_i8.dummyValue<String>(
           this,
           Invocation.method(
             #sendChatMessage,
@@ -60,6 +64,7 @@ class MockChatNetworkDataSource extends _i1.Mock
               serviceName,
               modelName,
               conversationHistory,
+              context,
             ],
           ),
         )),

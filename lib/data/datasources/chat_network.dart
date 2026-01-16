@@ -30,7 +30,28 @@ class ChatNetworkDataSource {
       modelName: modelName,
       message: message.content,
       conversationHistory: conversationHistory,
-      systemPrompt: context.text,
+      systemPrompt: context.text +
+          '''
+
+IMPORTANT: You can generate UI components.
+To render a component, your response MUST be a JSON object (wrapped in ```json ... ``` block or plain) with this structure:
+{
+  "text": "Your textual response here...",
+  "ui_components": [
+    {
+       "type": "InfoCard",
+       "props": { "title": "...", "content": "..." }
+    },
+    ...
+  ]
+}
+Available Components:
+- InfoCard(title, content, icon[info, warning, check, error])
+- StatusBadge(label, status[success, warning, error, info])
+
+If no UI component is needed, you can just return standard text.
+But if asked for a "card" or "badge" or "UI", USE THE JSON FORMAT.
+''',
 //       systemPrompt: '''
 // You are an AI assistant designed for concise, engaging conversations. Follow these rules:
 // - Use the fewest words possible while maintaining clarity, impact and natural language
@@ -51,7 +72,6 @@ class ChatNetworkDataSource {
 }
 
 //there should be more options, messages list, service provider, model, etc. and there should be default values from the shared preferences
-
 
 //OLD WAY:
 // Future<dynamic> askLLM(String input) async {

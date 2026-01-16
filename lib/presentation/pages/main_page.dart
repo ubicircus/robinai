@@ -32,50 +32,49 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   @override
-  void initState() {
-    BlocProvider.of<ChatBloc>(context).add(InitializeAppEvent());
-    super.initState();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return MaterialApp(
       theme: ThemeData.light(),
       home: MultiBlocProvider(
         providers: [
           BlocProvider<ChatBloc>(
-            create: (_) => ChatBloc(
-              sendMessageUseCase: SendMessageUseCase(
-                  chatRepository: ChatMessageRepository(
-                      chatNetworkDataSource:
-                          ChatNetworkDataSource(modelFactory: ModelFactory()),
-                      chatLocalDataSource: ChatLocalDataSource())),
-              chatRepository: ChatMessageRepository(
-                  chatNetworkDataSource:
-                      ChatNetworkDataSource(modelFactory: ModelFactory()),
-                  chatLocalDataSource: ChatLocalDataSource()),
-              getLastThreadIdUseCase: GetLastThreadIdUseCase(
-                repository: ThreadRepository(
-                  chatLocalDataSource: ChatLocalDataSource(),
+            create: (_) {
+              final bloc = ChatBloc(
+                sendMessageUseCase: SendMessageUseCase(
+                    chatRepository: ChatMessageRepository(
+                        chatNetworkDataSource:
+                            ChatNetworkDataSource(modelFactory: ModelFactory()),
+                        chatLocalDataSource: ChatLocalDataSource())),
+                chatRepository: ChatMessageRepository(
+                    chatNetworkDataSource:
+                        ChatNetworkDataSource(modelFactory: ModelFactory()),
+                    chatLocalDataSource: ChatLocalDataSource()),
+                getLastThreadIdUseCase: GetLastThreadIdUseCase(
+                  repository: ThreadRepository(
+                    chatLocalDataSource: ChatLocalDataSource(),
+                  ),
                 ),
-              ),
-              getThreadDetailsByIdUseCase: GetThreadDetailsByIdUseCase(
-                threadRepository: ThreadRepository(
-                  chatLocalDataSource: ChatLocalDataSource(),
+                getThreadDetailsByIdUseCase: GetThreadDetailsByIdUseCase(
+                  threadRepository: ThreadRepository(
+                    chatLocalDataSource: ChatLocalDataSource(),
+                  ),
                 ),
-              ),
-              getThreadListUseCase: GetThreadListUseCase(
-                repository: ThreadRepository(
-                  chatLocalDataSource: ChatLocalDataSource(),
+                getThreadListUseCase: GetThreadListUseCase(
+                  repository: ThreadRepository(
+                    chatLocalDataSource: ChatLocalDataSource(),
+                  ),
                 ),
-              ),
-              getModelsUseCase: GetModelsUseCase(
-                  modelsRepository: ModelsRepository(
-                chatNetworkDataSource: ChatNetworkDataSource(
-                  modelFactory: ModelFactory(),
-                ),
-              )),
-            ),
+                getModelsUseCase: GetModelsUseCase(
+                    modelsRepository: ModelsRepository(
+                  chatNetworkDataSource: ChatNetworkDataSource(
+                    modelFactory: ModelFactory(),
+                  ),
+                )),
+              );
+              // Dispatch InitializeAppEvent immediately after creating the bloc
+              bloc.add(InitializeAppEvent());
+              return bloc;
+            },
           ),
         ],
         child: ChatPage(),

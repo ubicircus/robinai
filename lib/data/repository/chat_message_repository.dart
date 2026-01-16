@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:robin_ai/core/service_names.dart';
 import 'package:robin_ai/presentation/config/context/model/context_model.dart';
 import 'package:uuid/uuid.dart';
@@ -64,10 +65,63 @@ class ChatMessageRepository implements IChatMessageRepository {
     try {
       String response = await chatNetworkDataSource.sendChatMessage(
           message, serviceName, modelName, chatHistory, context);
+      Map<String, dynamic>? uiComponents;
+      String content = response;
+
+      try {
+        String jsonStr = response;
+        // Try extracting from markdown code blocks first
+        final codeBlockRegex =
+            RegExp(r'```json\s*(\{[\s\S]*?\})\s*```', caseSensitive: false);
+        final match = codeBlockRegex.firstMatch(response);
+
+        if (match != null) {
+          jsonStr = match.group(1) ?? response;
+        } else {
+          // Fallback: Try to find the first '{' and last '}'
+          final start = response.indexOf('{');
+          final end = response.lastIndexOf('}');
+          if (start != -1 && end != -1 && end > start) {
+            jsonStr = response.substring(start, end + 1);
+          }
+        }
+
+        final data = json.decode(jsonStr);
+
+        if (data is Map<String, dynamic>) {
+          if (data['text'] != null) {
+            content = data['text'];
+          }
+          // If there was text OUTSIDE the JSON code block, we might want to preserve it if data['text'] is empty?
+          // But strict contract says data['text'] is the response.
+          // However, if the LLM drifted, "content" might be better if combined?
+          // For now, let's trust data['text'] if present, but if we parsed a CODE BLOCK,
+          // we definitely don't want to show the raw code block in the chat.
+
+          if (data['ui_components'] != null) {
+            uiComponents = {'ui_components': data['ui_components']};
+          }
+        }
+      } catch (e) {
+        // Not a JSON response, keep original content
+        print(
+            'Parsing response as JSON failed, treating as plain text: $e. Raw response start: ${response.substring(0, response.length > 50 ? 50 : response.length)}');
+      }
+
+      // Strip outer code fences if entire content is wrapped in them
+      // This prevents LLM from wrapping markdown examples in code blocks
+      final outerCodeFenceRegex =
+          RegExp(r'^```(?:[a-z]*\n)?([\s\S]*?)\n?```$', multiLine: true);
+      final outerMatch = outerCodeFenceRegex.firstMatch(content.trim());
+      if (outerMatch != null) {
+        content = outerMatch.group(1) ?? content;
+      }
+
       ChatMessageNetworkModel responseModel = ChatMessageNetworkModel(
         id: Uuid().v4(),
-        content: response,
+        content: content,
         timestamp: DateTime.now(),
+        uiComponents: uiComponents,
       );
       return responseModel;
     } catch (error) {

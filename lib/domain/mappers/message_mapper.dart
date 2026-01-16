@@ -8,6 +8,7 @@ class MessageMapper {
       content: message.content,
       isUserMessage: message.isUserMessage,
       timestamp: message.timestamp,
+      uiComponents: message.uiComponents,
     );
   }
 
@@ -17,6 +18,7 @@ class MessageMapper {
       content: chatMessage.content,
       isUserMessage: chatMessage.isUserMessage,
       timestamp: chatMessage.timestamp,
+      uiComponents: chatMessage.uiComponents,
     );
   }
 }

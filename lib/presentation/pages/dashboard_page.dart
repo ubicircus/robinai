@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:robin_ai/presentation/genui/gen_ui_test_page.dart';
 import 'package:robin_ai/presentation/pages/chat_page/chat_page.dart';
+import 'package:robin_ai/presentation/pages/chat_page/prototype_chat_page.dart';
 import 'package:robin_ai/presentation/pages/settings_page.dart';
 
 class DashboardPage extends StatelessWidget {
@@ -53,6 +54,20 @@ class DashboardPage extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (_) => const GenUiTestPage()),
+                );
+              },
+            ),
+            const SizedBox(height: 16),
+            _buildNavCard(
+              context,
+              title: 'New Prototype UI',
+              description: 'Claude-inspired chat interface.',
+              icon: FontAwesomeIcons.lightbulb,
+              color: Colors.orange,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const PrototypeChatPage()),
                 );
               },
             ),

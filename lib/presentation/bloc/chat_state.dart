@@ -12,8 +12,8 @@ class ChatState {
     this.thread,
     this.threads = const [],
     this.serviceName = ServiceName.openai,
-    this.modelName = 'gpt-3.5-turbo-0613',
-    this.modelsAvailable = const ['gpt-3.5-turbo-0613'],
+    this.modelName = '',
+    this.modelsAvailable = const [],
     ContextModel? context,
   }) : context = context ??
             ContextModel(
