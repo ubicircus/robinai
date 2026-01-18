@@ -32,6 +32,14 @@
 	<string>Used to save music locally</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Used to save images locally</string>
+	<key>NSCalendarsUsageDescription</key>
+	<string>This app needs access to your calendar to add events.</string>
+	<key>NSCalendarsFullAccessUsageDescription</key>
+	<string>This app needs full access to your calendar to add and modify events.</string>
+	<key>NSCalendarsWriteOnlyAccessUsageDescription</key>
+	<string>This app needs write access to add events to your calendar.</string>
+	<key>NSContactsUsageDescription</key>
+	<string>This app needs access to contacts to add attendees to calendar events.</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>

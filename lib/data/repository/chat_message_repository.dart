@@ -1,11 +1,15 @@
 import 'dart:convert';
 import 'package:robin_ai/core/service_names.dart';
+import 'package:robin_ai/data/datasources/mcp/mcp_tool_executor.dart';
+import 'package:robin_ai/data/datasources/mcp/tool_result_formatter.dart';
 import 'package:robin_ai/presentation/config/context/model/context_model.dart';
+import 'package:robin_ai/presentation/config/services/mcp_server_service.dart';
 import 'package:uuid/uuid.dart';
 import '../../domain/entities/chat_message_class.dart';
 import '../../domain/interfaces/chat_message_repository_interface.dart';
 import '../datasources/chat_network.dart';
 import '../datasources/chat_local.dart';
+import '../datasources/llm_models/ModelFactoryInterface.dart';
 import '../model/chat_message_network_mapper.dart';
 import '../model/chat_message_local_mapper.dart';
 import '../model/chat_message_network_model.dart';
@@ -14,10 +18,14 @@ import '../../../core/error_messages.dart';
 class ChatMessageRepository implements IChatMessageRepository {
   final ChatLocalDataSource chatLocalDataSource;
   final ChatNetworkDataSource chatNetworkDataSource;
+  final McpServerService? mcpServerService;
+  final ModelFactoryInterface? modelFactory;
 
   ChatMessageRepository({
     required this.chatNetworkDataSource,
     required this.chatLocalDataSource,
+    this.mcpServerService,
+    this.modelFactory,
   });
 
   Future<void> ensureInitialized() async {
@@ -62,11 +70,41 @@ class ChatMessageRepository implements IChatMessageRepository {
     List<ChatMessage> chatHistory,
     ContextModel context,
   ) async {
-    try {
-      String response = await chatNetworkDataSource.sendChatMessage(
-          message, serviceName, modelName, chatHistory, context);
-      Map<String, dynamic>? uiComponents;
-      String content = response;
+      try {
+        String response = await chatNetworkDataSource.sendChatMessage(
+            message, serviceName, modelName, chatHistory, context);
+        Map<String, dynamic>? uiComponents;
+        String content = response;
+
+        // Check for tool calls in response
+        if (mcpServerService != null && modelFactory != null) {
+          final toolExecutor = McpToolExecutor(mcpServerService!);
+          final toolCall = toolExecutor.parseToolCall(response);
+          
+          if (toolCall != null) {
+            try {
+              // Execute tool
+              final rawResult = await toolExecutor.executeToolCall(toolCall);
+              
+              // Format result using LLM agent
+              final formatter = ToolResultFormatter(
+                modelFactory: modelFactory!,
+                serviceName: serviceName,
+                modelName: modelName,
+              );
+              final formattedResult = await formatter.formatResult(rawResult);
+              
+              // Use formatted result
+              content = formattedResult['text'] ?? content;
+              if (formattedResult['ui_components'] != null) {
+                uiComponents = {'ui_components': formattedResult['ui_components']};
+              }
+            } catch (e) {
+              print('Tool execution or formatting failed: $e');
+              // Continue with original response
+            }
+          }
+        }
 
       try {
         String jsonStr = response;

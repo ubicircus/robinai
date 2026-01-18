@@ -159,17 +159,7 @@ class _PrototypeChatPageState extends State<PrototypeChatPage> {
             ),
           ),
         ),
-        actions: [
-          IconButton(
-            icon: Icon(_useRealLlm ? Icons.cloud_done : Icons.science,
-                color: accentColor),
-            tooltip: _useRealLlm ? "Using Real LLM" : "Using Mock Data",
-            onPressed: () {
-              // Quick toggle for dev
-              _toggleGenerator(!_useRealLlm);
-            },
-          ),
-        ],
+        actions: [],
       ),
       body: Stack(
         children: [

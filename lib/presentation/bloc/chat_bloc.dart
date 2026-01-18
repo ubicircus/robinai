@@ -40,6 +40,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     on<SelectModelEvent>(_handleSelectModel);
     on<GetModelsEvent>(_getModels);
     on<SelectDefaultContext>(_handleSelectContext);
+    on<CalendarEventStatusEvent>(_handleCalendarEventStatus);
   }
 
   void _handleSendMessage(
@@ -221,5 +222,70 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       SelectDefaultContext event, Emitter<ChatState> emit) async {
     final ContextModel context = event.context;
     emit(state.copyWith(context: context));
+  }
+
+  void _handleCalendarEventStatus(
+      CalendarEventStatusEvent event, Emitter<ChatState> emit) async {
+    try {
+      final threadId = state.thread?.id ?? "";
+      
+      if (threadId.isEmpty) {
+        print('CalendarEventStatusEvent: No active thread');
+        return;
+      }
+
+      final updatedThread = state.thread ??
+          Thread(id: threadId, messages: [], name: "Thread name");
+
+      // Only add follow-up message for failures/denials, not for success
+      // The followUpMessage from CalendarEventService is already filtered
+      updatedThread.messages.insert(0, event.followUpMessage);
+      emit(state.copyWith(thread: updatedThread));
+
+      // Only send to LLM for failures/denials, not for success
+      // This prevents duplicate confirmations
+      if (event.status == 'denied' || event.status == 'failed') {
+        final systemMessage = ChatMessage(
+          id: const Uuid().v4(),
+          content: _buildCalendarStatusMessage(event),
+          isUserMessage: true, // This represents user action/feedback
+          timestamp: DateTime.now(),
+        );
+
+        updatedThread.messages.insert(0, systemMessage);
+        emit(state.copyWith(thread: updatedThread));
+
+        // Get LLM response to the status update
+        final responseMessage = await sendMessageUseCase.call(
+          threadId,
+          systemMessage,
+          state.serviceName,
+          state.modelName,
+          updatedThread.messages.reversed.toList(),
+          state.context,
+        );
+
+        updatedThread.messages.insert(0, responseMessage);
+        emit(state.copyWith(thread: updatedThread));
+      }
+    } catch (e) {
+      print('Error handling calendar event status: $e');
+      // Don't emit error state, just log it
+    }
+  }
+
+  String _buildCalendarStatusMessage(CalendarEventStatusEvent event) {
+    switch (event.status) {
+      case 'denied':
+        return 'Calendar permission was denied for the event "${event.eventTitle}". '
+            'I cannot add this event to your calendar without permission. '
+            'Would you like to try again, or would you prefer to add it manually?';
+      case 'failed':
+        return 'Failed to add the event "${event.eventTitle}" to your calendar. '
+            '${event.error != null ? "Error: ${event.error}" : ""} '
+            'Would you like to try again?';
+      default:
+        return 'Calendar event status update: ${event.status}';
+    }
   }
 }

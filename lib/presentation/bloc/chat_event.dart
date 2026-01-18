@@ -42,6 +42,22 @@ class SelectDefaultContext extends ChatEvent {
   final ContextModel context;
   SelectDefaultContext({required this.context});
 }
+
+class CalendarEventStatusEvent extends ChatEvent {
+  final String eventId;
+  final String status; // denied, created, failed, granted
+  final String? error;
+  final String eventTitle;
+  final ChatMessage followUpMessage;
+
+  CalendarEventStatusEvent({
+    required this.eventId,
+    required this.status,
+    this.error,
+    required this.eventTitle,
+    required this.followUpMessage,
+  });
+}
 // chat_state.dart
 
 // class ChatState {

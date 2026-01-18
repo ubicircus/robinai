@@ -3,6 +3,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:robin_ai/core/service_names.dart';
 import 'package:robin_ai/presentation/config/services/app_settings_service.dart';
 import 'package:robin_ai/presentation/pages/context_list_page.dart';
+import 'package:robin_ai/presentation/pages/mcp_servers_page.dart';
 
 // Model class for settings options
 class SettingsOption {
@@ -25,6 +26,11 @@ class SettingsPage extends StatelessWidget {
       title: 'Context Config',
       iconData: FontAwesomeIcons.brain,
       page: ContextListPage(),
+    ),
+    SettingsOption(
+      title: 'MCP Servers',
+      iconData: Icons.cloud,
+      page: McpServersPage(),
     ),
   ];
 

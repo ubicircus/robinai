@@ -1,17 +1,23 @@
-import 'dart:developer';
-
 import 'package:robin_ai/core/service_names.dart';
+import 'package:robin_ai/data/datasources/genui/genui_system_prompt.dart';
+import 'package:robin_ai/data/datasources/genui/genui_system_prompt_builder.dart';
 import 'package:robin_ai/data/datasources/llm_models/ModelFactoryInterface.dart';
 import 'package:robin_ai/data/model/chat_message_network_model.dart';
 import 'package:robin_ai/data/datasources/llm_models/ModelInterface.dart';
 import 'package:robin_ai/domain/entities/chat_message_class.dart';
+import 'package:robin_ai/domain/entities/mcp_tool.dart';
 import 'package:robin_ai/presentation/config/context/model/context_model.dart';
+import 'package:robin_ai/presentation/config/services/mcp_server_service.dart';
 
 class ChatNetworkDataSource {
   final ModelFactoryInterface _modelFactory;
+  final McpServerService? _mcpServerService;
 
-  ChatNetworkDataSource({required ModelFactoryInterface modelFactory})
-      : _modelFactory = modelFactory;
+  ChatNetworkDataSource({
+    required ModelFactoryInterface modelFactory,
+    McpServerService? mcpServerService,
+  })  : _modelFactory = modelFactory,
+        _mcpServerService = mcpServerService;
 
   // POST request to send a message
   Future<String> sendChatMessage(
@@ -26,32 +32,32 @@ class ChatNetworkDataSource {
 
     // Now you can use this instance for making network requests
     print(context.name);
+    
+    // Get MCP tools if service is available
+    List<dynamic>? mcpToolsJson;
+    if (_mcpServerService != null) {
+      try {
+        final tools = await _mcpServerService.getAvailableTools();
+        mcpToolsJson = tools.map((t) => t.toJson()).toList();
+      } catch (e) {
+        print('Failed to get MCP tools: $e');
+      }
+    }
+    
+    // Build system prompt with GenUI and MCP tools
+    final basePrompt = context.text + '\n\n' + genUiSystemPrompt;
+    final systemPrompt = GenUiSystemPromptBuilder.buildSystemPrompt(
+      basePrompt: basePrompt,
+      mcpTools: mcpToolsJson != null
+          ? mcpToolsJson.map((t) => McpTool.fromJson(t)).toList()
+          : null,
+    );
+    
     return modelInterface.sendChatMessageModel(
       modelName: modelName,
       message: message.content,
       conversationHistory: conversationHistory,
-      systemPrompt: context.text +
-          '''
-
-IMPORTANT: You can generate UI components.
-To render a component, your response MUST be a JSON object (wrapped in ```json ... ``` block or plain) with this structure:
-{
-  "text": "Your textual response here...",
-  "ui_components": [
-    {
-       "type": "InfoCard",
-       "props": { "title": "...", "content": "..." }
-    },
-    ...
-  ]
-}
-Available Components:
-- InfoCard(title, content, icon[info, warning, check, error])
-- StatusBadge(label, status[success, warning, error, info])
-
-If no UI component is needed, you can just return standard text.
-But if asked for a "card" or "badge" or "UI", USE THE JSON FORMAT.
-''',
+      systemPrompt: systemPrompt,
 //       systemPrompt: '''
 // You are an AI assistant designed for concise, engaging conversations. Follow these rules:
 // - Use the fewest words possible while maintaining clarity, impact and natural language

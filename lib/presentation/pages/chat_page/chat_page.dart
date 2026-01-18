@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'package:robin_ai/core/constants.dart';
 import 'package:robin_ai/core/service_names.dart';
 import 'package:robin_ai/presentation/bloc/chat_bloc.dart';
-import 'package:robin_ai/presentation/config/context/app_settings_context_config.dart';
 import 'package:robin_ai/presentation/config/services/app_settings_service.dart';
 import 'package:robin_ai/presentation/pages/chat_page/chat_page_chat_widget.dart';
 import 'package:robin_ai/presentation/pages/chat_page/chat_page_drawer.dart';
@@ -44,10 +42,15 @@ class _ChatPageState extends State<ChatPage> {
 
   @override
   Widget build(BuildContext context) {
+    // Claude-inspired theme colors
+    const bgLight = Color(0xFFFAF9F6); // Warm off-white
+
     return Scaffold(
+      backgroundColor: bgLight,
       appBar: AppBar(
         toolbarHeight: 100,
-        backgroundColor: AppColors.lightSage,
+        backgroundColor: bgLight,
+        elevation: 0,
         title: FutureBuilder<Map<String, String>>(
           future: _apiKeysFuture,
           builder: (context, snapshot) {
@@ -75,7 +78,7 @@ class _ChatPageState extends State<ChatPage> {
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.restore_page_outlined, size: 36),
+            icon: const Icon(Icons.restore_page_outlined, size: 36, color: Colors.black54),
             onPressed: () {
               context.read<ChatBloc>().add(ClearChatEvent());
             },
