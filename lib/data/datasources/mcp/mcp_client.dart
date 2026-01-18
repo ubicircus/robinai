@@ -33,10 +33,29 @@ class McpClient {
     }
   }
 
+  bool _isInitializedNotificationUnsupported(McpError error) {
+    if (error is! McpProtocolError) return false;
+    final original = error.originalError;
+    if (original is! Map) return false;
+    final code = original['code'];
+    final message = original['message']?.toString() ?? '';
+    return code == -32601 &&
+        message.contains('notifications/initialized');
+  }
+
   /// Initialize connection with MCP server
   Future<McpServerInfo> initialize() async {
+    if (_initialized) {
+      return McpServerInfo(
+        name: 'Unknown',
+        version: '0.0.0',
+        capabilities: {},
+        protocolVersion: _protocolVersion,
+      );
+    }
+
     try {
-      await transport.initialize(
+      final initResult = await transport.initialize(
         protocolVersion: _protocolVersion,
         capabilities: {
           'tools': {},
@@ -44,27 +63,25 @@ class McpClient {
         },
       );
 
-      // Send initialized notification
-      await transport.sendRequest('notifications/initialized', null);
+      try {
+        await transport.sendRequest('notifications/initialized', null);
+      } catch (e) {
+        if (e is McpError && _isInitializedNotificationUnsupported(e)) {
+        } else {
+          rethrow;
+        }
+      }
 
       _initialized = true;
 
-      // Get server info
-      final result = await transport.sendRequest('initialize', {
-        'protocolVersion': _protocolVersion,
-        'capabilities': {},
-        'clientInfo': {
-          'name': 'robin_ai',
-          'version': '0.0.2',
-        },
-      });
-
-      return McpServerInfo(
-        name: result['serverInfo']?['name'] ?? 'Unknown',
-        version: result['serverInfo']?['version'] ?? '0.0.0',
-        capabilities: result['capabilities'] as Map<String, dynamic>?,
-        protocolVersion: result['protocolVersion'] ?? _protocolVersion,
+      final serverInfo = McpServerInfo(
+        name: initResult['serverInfo']?['name'] ?? 'Unknown',
+        version: initResult['serverInfo']?['version'] ?? '0.0.0',
+        capabilities: initResult['capabilities'] as Map<String, dynamic>? ?? {},
+        protocolVersion: initResult['protocolVersion'] ?? _protocolVersion,
       );
+      
+      return serverInfo;
     } catch (e) {
       _initialized = false;
       if (e is McpError) rethrow;
@@ -80,9 +97,10 @@ class McpClient {
 
     try {
       final result = await transport.sendRequest('tools/list', null);
+      
       final toolsList = result['tools'] as List<dynamic>? ?? [];
 
-      return toolsList.map((tool) {
+      final tools = toolsList.map((tool) {
         return McpTool(
           name: tool['name'] as String,
           description: tool['description'] as String? ?? '',
@@ -90,6 +108,8 @@ class McpClient {
           serverId: config.id,
         );
       }).toList();
+      
+      return tools;
     } catch (e) {
       if (e is McpError) rethrow;
       throw McpProtocolError('Failed to list tools: ${e.toString()}', e);
@@ -159,7 +179,9 @@ class McpClient {
   Future<bool> testConnection() async {
     try {
       await initialize();
+      
       await listTools(); // Try to list tools as a connection test
+      
       return true;
     } catch (e) {
       return false;

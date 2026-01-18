@@ -5,7 +5,8 @@ abstract class McpTransport {
     Map<String, dynamic>? params,
   );
 
-  Future<void> initialize({
+  /// Initialize the connection and return the server info from the response
+  Future<Map<String, dynamic>> initialize({
     required String protocolVersion,
     Map<String, dynamic>? capabilities,
   });

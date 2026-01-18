@@ -4,6 +4,7 @@ import 'package:uuid/uuid.dart';
 import 'widgets/info_card.dart';
 import 'widgets/status_badge.dart';
 import 'widgets/event_card.dart';
+import 'widgets/route_card.dart';
 import '../services/calendar_event_service.dart';
 
 final robinCatalog = Catalog([
@@ -47,6 +48,46 @@ final robinCatalog = Catalog([
       return StatusBadge(
         label: properties['label'] ?? 'Unknown',
         status: properties['status'] ?? 'info',
+      );
+    },
+  ),
+  CatalogItem(
+    name: 'RouteCard',
+    dataSchema: Schema.object(
+      properties: {
+        'title': Schema.string(description: 'Optional title of the route card'),
+        'distanceText': Schema.string(description: 'Distance text (e.g., "295 km")'),
+        'durationText': Schema.string(description: 'Duration text (e.g., "3 hours 4 mins")'),
+        'mode': Schema.string(
+          description: 'Travel mode (walk, drive, transit, bicycle)',
+          enumValues: ['walk', 'drive', 'transit', 'bicycle'],
+        ),
+        'polyline': Schema.string(description: 'Optional encoded polyline string for map display'),
+        'origin': Schema.object(
+          description: 'Optional origin location (address, coordinates, or place_id)',
+          properties: {},
+        ),
+        'destination': Schema.object(
+          description: 'Optional destination location (address, coordinates, or place_id)',
+          properties: {},
+        ),
+      },
+      required: ['distanceText', 'durationText'],
+    ),
+    widgetBuilder: (itemContext) {
+      final properties = itemContext.data as Map<String, dynamic>;
+      return RouteCard(
+        title: properties['title'],
+        distanceText: properties['distanceText'] ?? '',
+        durationText: properties['durationText'] ?? '',
+        mode: properties['mode'],
+        polyline: properties['polyline'],
+        origin: properties['origin'] is Map<String, dynamic>
+            ? properties['origin'] as Map<String, dynamic>
+            : null,
+        destination: properties['destination'] is Map<String, dynamic>
+            ? properties['destination'] as Map<String, dynamic>
+            : null,
       );
     },
   ),

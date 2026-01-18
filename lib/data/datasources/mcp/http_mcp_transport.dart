@@ -19,6 +19,7 @@ class HttpMcpTransport implements McpTransport {
     String method,
     Map<String, dynamic>? params,
   ) async {
+    final requestId = DateTime.now().millisecondsSinceEpoch.toString();
     try {
       final headers = <String, String>{
         'Content-Type': 'application/json',
@@ -31,7 +32,7 @@ class HttpMcpTransport implements McpTransport {
 
       final requestBody = jsonEncode({
         'jsonrpc': '2.0',
-        'id': DateTime.now().millisecondsSinceEpoch.toString(),
+        'id': requestId,
         'method': method,
         if (params != null) 'params': params,
       });
@@ -78,11 +79,11 @@ class HttpMcpTransport implements McpTransport {
   }
 
   @override
-  Future<void> initialize({
+  Future<Map<String, dynamic>> initialize({
     required String protocolVersion,
     Map<String, dynamic>? capabilities,
   }) async {
-    await sendRequest('initialize', {
+    return await sendRequest('initialize', {
       'protocolVersion': protocolVersion,
       'capabilities': capabilities ?? {},
       'clientInfo': {

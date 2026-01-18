@@ -34,7 +34,18 @@ AVAILABLE UI COMPONENTS (TOOLS):
      - label (string, required): The text label.
      - status (string, required): One of "success", "warning", "error", "info".
 
-3. EventCard
+3. RouteCard
+   - Use this to show a route summary with optional map preview and buttons to open in Google Maps or Apple Maps.
+   - Properties:
+     - distanceText (string, required): Distance text (e.g., "295 km").
+     - durationText (string, required): Duration text (e.g., "3 hours 4 mins").
+     - mode (string, optional): One of "walk", "drive", "transit", "bicycle".
+     - title (string, optional): Card title (e.g., "Route").
+     - polyline (string, optional): Encoded polyline string for map route display.
+     - origin (object, optional): Origin location with address, coordinates, or place_id.
+     - destination (object, optional): Destination location with address, coordinates, or place_id.
+
+4. EventCard
    - Use this to create and display calendar events that users can add to their calendar.
    - Properties:
      - title (string, required): The title/name of the event.

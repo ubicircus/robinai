@@ -150,22 +150,31 @@ class McpServerService {
   }
 
   /// Test connection to a server
-  Future<bool> testConnection(McpServerConfig config) async {
+  Future<bool> testConnection(
+    McpServerConfig config, {
+    bool persistResult = true,
+  }) async {
     try {
       final client = McpClient(config);
+      
       final success = await client.testConnection();
+      
       client.dispose();
 
-      // Update last tested timestamp
-      config.lastTested = DateTime.now();
-      config.lastError = success ? null : 'Connection test failed';
-      await saveServerConfig(config);
+      if (persistResult) {
+        // Update last tested timestamp
+        config.lastTested = DateTime.now();
+        config.lastError = success ? null : 'Connection test failed';
+        await saveServerConfig(config);
+      }
 
       return success;
     } catch (e) {
-      config.lastTested = DateTime.now();
-      config.lastError = e.toString();
-      await saveServerConfig(config);
+      if (persistResult) {
+        config.lastTested = DateTime.now();
+        config.lastError = e.toString();
+        await saveServerConfig(config);
+      }
       return false;
     }
   }

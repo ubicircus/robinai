@@ -75,75 +75,96 @@ class ChatMessageRepository implements IChatMessageRepository {
             message, serviceName, modelName, chatHistory, context);
         Map<String, dynamic>? uiComponents;
         String content = response;
+        bool toolHandled = false;
 
         // Check for tool calls in response
+        // Only parse tool calls from direct user messages, not from tool result formatting
+        // Skip tool calls for simple acknowledgments
         if (mcpServerService != null && modelFactory != null) {
-          final toolExecutor = McpToolExecutor(mcpServerService!);
-          final toolCall = toolExecutor.parseToolCall(response);
+          // Check if user message is just an acknowledgment - don't allow tool calls for these
+          final userMessageLower = message.content.toLowerCase().trim();
+          final isAcknowledgment = _isAcknowledgmentMessage(userMessageLower);
           
-          if (toolCall != null) {
+          if (isAcknowledgment) {
+            // For acknowledgments, skip tool call parsing entirely
+            toolHandled = false;
+          } else {
+            final toolExecutor = McpToolExecutor(mcpServerService!);
+            final toolCall = toolExecutor.parseToolCall(response);
+            
+            if (toolCall != null) {
             try {
               // Execute tool
               final rawResult = await toolExecutor.executeToolCall(toolCall);
               
-              // Format result using LLM agent
+              // Format result using LLM agent (but prevent recursive tool calls)
               final formatter = ToolResultFormatter(
                 modelFactory: modelFactory!,
                 serviceName: serviceName,
                 modelName: modelName,
+                userMessage: message.content,
               );
-              final formattedResult = await formatter.formatResult(rawResult);
+              final toolArguments = toolCall['arguments'] as Map<String, dynamic>?;
+              final formattedResult = await formatter.formatResult(
+                rawResult,
+                toolCallArguments: toolArguments,
+                preventToolCalls: true, // Prevent recursive tool calls
+              );
               
               // Use formatted result
               content = formattedResult['text'] ?? content;
               if (formattedResult['ui_components'] != null) {
                 uiComponents = {'ui_components': formattedResult['ui_components']};
               }
+              toolHandled = true;
             } catch (e) {
               print('Tool execution or formatting failed: $e');
               // Continue with original response
             }
           }
-        }
-
-      try {
-        String jsonStr = response;
-        // Try extracting from markdown code blocks first
-        final codeBlockRegex =
-            RegExp(r'```json\s*(\{[\s\S]*?\})\s*```', caseSensitive: false);
-        final match = codeBlockRegex.firstMatch(response);
-
-        if (match != null) {
-          jsonStr = match.group(1) ?? response;
-        } else {
-          // Fallback: Try to find the first '{' and last '}'
-          final start = response.indexOf('{');
-          final end = response.lastIndexOf('}');
-          if (start != -1 && end != -1 && end > start) {
-            jsonStr = response.substring(start, end + 1);
           }
         }
 
-        final data = json.decode(jsonStr);
+      if (!toolHandled) {
+        try {
+          String jsonStr = response;
+          // Try extracting from markdown code blocks first
+          final codeBlockRegex =
+              RegExp(r'```json\s*(\{[\s\S]*?\})\s*```', caseSensitive: false);
+          final match = codeBlockRegex.firstMatch(response);
 
-        if (data is Map<String, dynamic>) {
-          if (data['text'] != null) {
-            content = data['text'];
+          if (match != null) {
+            jsonStr = match.group(1) ?? response;
+          } else {
+            // Fallback: Try to find the first '{' and last '}'
+            final start = response.indexOf('{');
+            final end = response.lastIndexOf('}');
+            if (start != -1 && end != -1 && end > start) {
+              jsonStr = response.substring(start, end + 1);
+            }
           }
-          // If there was text OUTSIDE the JSON code block, we might want to preserve it if data['text'] is empty?
-          // But strict contract says data['text'] is the response.
-          // However, if the LLM drifted, "content" might be better if combined?
-          // For now, let's trust data['text'] if present, but if we parsed a CODE BLOCK,
-          // we definitely don't want to show the raw code block in the chat.
 
-          if (data['ui_components'] != null) {
-            uiComponents = {'ui_components': data['ui_components']};
+          final data = json.decode(jsonStr);
+
+          if (data is Map<String, dynamic>) {
+            if (data['text'] != null) {
+              content = data['text'];
+            }
+            // If there was text OUTSIDE the JSON code block, we might want to preserve it if data['text'] is empty?
+            // But strict contract says data['text'] is the response.
+            // However, if the LLM drifted, "content" might be better if combined?
+            // For now, let's trust data['text'] if present, but if we parsed a CODE BLOCK,
+            // we definitely don't want to show the raw code block in the chat.
+
+            if (data['ui_components'] != null) {
+              uiComponents = {'ui_components': data['ui_components']};
+            }
           }
+        } catch (e) {
+          // Not a JSON response, keep original content
+          print(
+              'Parsing response as JSON failed, treating as plain text: $e. Raw response start: ${response.substring(0, response.length > 50 ? 50 : response.length)}');
         }
-      } catch (e) {
-        // Not a JSON response, keep original content
-        print(
-            'Parsing response as JSON failed, treating as plain text: $e. Raw response start: ${response.substring(0, response.length > 50 ? 50 : response.length)}');
       }
 
       // Strip outer code fences if entire content is wrapped in them
@@ -166,5 +187,36 @@ class ChatMessageRepository implements IChatMessageRepository {
       print('Failed to send message to network: $error');
       throw ErrorMessages.sendNetworkFailed;
     }
+  }
+
+  /// Check if message is a simple acknowledgment that shouldn't trigger tool calls
+  bool _isAcknowledgmentMessage(String message) {
+    final acknowledgments = [
+      'thanks',
+      'thank you',
+      'dzięki',
+      'dziękuję',
+      'ok',
+      'okay',
+      'ok thanks',
+      'ok dzięki',
+      'got it',
+      'understood',
+      'alright',
+      'all right',
+      'sure',
+      'yeah',
+      'yes',
+      'yep',
+      'cool',
+      'nice',
+      'great',
+      'perfect',
+    ];
+    
+    // Check if message is just an acknowledgment (possibly with punctuation)
+    final cleanMessage = message.replaceAll(RegExp(r'[^\w\s]'), '').trim();
+    return acknowledgments.contains(cleanMessage) || 
+           acknowledgments.any((ack) => cleanMessage == ack || cleanMessage.startsWith('$ack '));
   }
 }

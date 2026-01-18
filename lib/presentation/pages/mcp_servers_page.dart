@@ -357,7 +357,10 @@ class _AddMcpServerPageState extends State<AddMcpServerPage> {
       );
 
       final mcpService = McpServerService();
-      final success = await mcpService.testConnection(testConfig);
+      final success = await mcpService.testConnection(
+        testConfig,
+        persistResult: false,
+      );
 
       if (mounted) {
         showCupertinoDialog(
